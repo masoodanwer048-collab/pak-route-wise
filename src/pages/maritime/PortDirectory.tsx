@@ -1,135 +1,104 @@
-import { MainLayout } from '@/components/layout/MainLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Search, 
-  Anchor,
-  Ship,
-  Truck,
-  Plane,
-  MapPin,
-  Globe,
-  ExternalLink
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { PAKISTAN_PORTS } from '@/types/logistics';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Search, MapPin, Phone, Globe, ExternalLink } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
-const portCategories = [
-  { id: 'sea', name: 'Sea Ports', icon: Anchor, color: 'bg-info/10 text-info' },
-  { id: 'dry', name: 'Dry Ports', icon: Truck, color: 'bg-success/10 text-success' },
-  { id: 'air', name: 'Airports', icon: Plane, color: 'bg-accent/10 text-accent' },
-  { id: 'border', name: 'Border Points', icon: MapPin, color: 'bg-warning/10 text-warning' },
+const ports = [
+  {
+    name: "Karachi Port Trust (KPT)",
+    code: "PKKHI",
+    type: "Deep Sea Port",
+    address: "Eduljee Dinshaw Road, Karachi, Pakistan",
+    phone: "+92-21-99214530",
+    website: "https://kpt.gov.pk",
+    terminals: ["East Wharf", "West Wharf", "KICT", "PICT"]
+  },
+  {
+    name: "Port Qasim Authority (PQA)",
+    code: "PKBQM",
+    type: "Deep Sea Port / Industrial Zone",
+    address: "Bin Qasim, Karachi, Pakistan",
+    phone: "+92-21-99272111",
+    website: "https://pqa.gov.pk",
+    terminals: ["QICT", "FOTCO", "Engro Vopak"]
+  },
+  {
+    name: "Gwadar Port Authority (GPA)",
+    code: "PKGWA",
+    type: "Deep Sea Port",
+    address: "Pak-China Friendship Ave, Gwadar, Balochistan",
+    phone: "+92-86-9200401",
+    website: "http://gwadarport.gov.pk",
+    terminals: ["COPHC Multi-Purpose Terminal"]
+  },
+  {
+    name: "South Asia Pakistan Terminals (SAPT)",
+    code: "SAPT",
+    type: "Container Terminal",
+    address: "Keamari Groyne, Karachi",
+    phone: "+92-21-32862800",
+    website: "https://sapt.com.pk",
+    terminals: ["Deep Draft Berths"]
+  }
 ];
 
-const internationalPorts = [
-  { code: 'CNSHA', name: 'Shanghai Port', country: 'China', region: 'Asia' },
-  { code: 'SGSIN', name: 'Singapore Port', country: 'Singapore', region: 'Asia' },
-  { code: 'AEJEA', name: 'Jebel Ali Port', country: 'UAE', region: 'Middle East' },
-  { code: 'NLRTM', name: 'Rotterdam Port', country: 'Netherlands', region: 'Europe' },
-  { code: 'USNYC', name: 'New York Port', country: 'USA', region: 'Americas' },
-  { code: 'GBFXT', name: 'Felixstowe Port', country: 'UK', region: 'Europe' },
-  { code: 'HKHKG', name: 'Hong Kong Port', country: 'Hong Kong', region: 'Asia' },
-  { code: 'KRPUS', name: 'Busan Port', country: 'South Korea', region: 'Asia' },
-];
-
-export default function PortDirectory() {
+const PortDirectory = () => {
   return (
-    <MainLayout 
-      title="Port Directory" 
-      subtitle="Pakistan and International Ports Reference"
-    >
-      <div className="space-y-6">
-        {/* Search */}
-        <div className="flex gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search port by name or code..."
-              className="pl-9"
-            />
-          </div>
-        </div>
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Port Directory</h1>
+        <p className="text-muted-foreground">Information and contacts for major ports and terminals.</p>
+      </div>
 
-        {/* Pakistan Ports */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Globe className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-lg">Pakistan Ports</h2>
-              <p className="text-sm text-muted-foreground">All major ports, terminals & border crossings</p>
-            </div>
-          </div>
+      <div className="max-w-md relative">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+        <Input type="search" placeholder="Search ports..." className="pl-8" />
+      </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            {portCategories.map((category) => {
-              const ports = PAKISTAN_PORTS[category.id as keyof typeof PAKISTAN_PORTS];
-              const CategoryIcon = category.icon;
-
-              return (
-                <div key={category.id} className="rounded-xl border border-border bg-card">
-                  <div className="flex items-center gap-3 p-4 border-b border-border">
-                    <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', category.color)}>
-                      <CategoryIcon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{category.name}</h3>
-                      <p className="text-sm text-muted-foreground">{ports.length} locations</p>
-                    </div>
-                  </div>
-                  <div className="divide-y divide-border">
-                    {ports.map((port) => (
-                      <div key={port.code} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                        <div>
-                          <p className="font-medium">{port.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="code-text">{port.code}</span>
-                            <span className="text-xs text-muted-foreground">{port.city}</span>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+        {ports.map((port, index) => (
+          <Card key={index} className="flex flex-col shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl text-blue-800">{port.name}</CardTitle>
+                  <CardDescription className="font-mono mt-1">{port.code} • {port.type}</CardDescription>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                <MapPin className="h-6 w-6 text-gray-400" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 flex-1">
+              <div className="flex items-start gap-2 text-sm text-gray-600">
+                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{port.address}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Phone className="h-4 w-4 shrink-0" />
+                <span>{port.phone}</span>
+              </div>
 
-        {/* International Ports */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-              <Ship className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-lg">International Ports</h2>
-              <p className="text-sm text-muted-foreground">Major global shipping hubs</p>
-            </div>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {internationalPorts.map((port) => (
-              <div key={port.code} className="rounded-xl border border-border bg-card p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium">{port.name}</p>
-                    <p className="text-sm text-muted-foreground">{port.country}</p>
-                  </div>
-                  <span className="status-badge bg-muted text-muted-foreground">{port.region}</span>
-                </div>
-                <div className="mt-3">
-                  <span className="code-text">{port.code}</span>
+              <div className="pt-2">
+                <span className="text-xs font-semibold uppercase text-gray-500 tracking-wider">Terminals:</span>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {port.terminals.map(t => (
+                    <span key={t} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md border">{t}</span>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </CardContent>
+            <CardFooter className="bg-gray-50 pt-4 rounded-b-xl border-t">
+              <Button variant="outline" className="w-full gap-2" asChild>
+                <a href={port.website} target="_blank" rel="noopener noreferrer">
+                  <Globe className="h-4 w-4" /> Visit Website <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
+                </a>
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
       </div>
-    </MainLayout>
+    </div>
   );
-}
+};
+
+export default PortDirectory;

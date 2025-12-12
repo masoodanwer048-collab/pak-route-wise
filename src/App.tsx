@@ -13,7 +13,7 @@ import GDFiling from "./pages/customs/GDFiling";
 import HSCodeLookup from "./pages/customs/HSCodeLookup";
 import BillOfLading from "./pages/documents/BillOfLading";
 import TransitManagement from "./pages/atta/TransitManagement";
-import PortDirectory from "./pages/maritime/PortDirectory";
+
 import AirWaybill from "./pages/documents/AirWaybill";
 import Bilty from "./pages/documents/Bilty";
 import NotFound from "./pages/NotFound";
@@ -33,6 +33,9 @@ import PODManagement from "./pages/local/PODManagement";
 import Inventory from "./pages/warehouse/Inventory";
 import GRNGIN from "./pages/warehouse/GRNGIN";
 import BondedWarehouse from "./pages/warehouse/BondedWarehouse";
+import ContainerTracking from "./pages/maritime/ContainerTracking";
+import VesselSchedule from "./pages/maritime/VesselSchedule";
+import PortDirectory from "./pages/maritime/PortDirectory";
 
 const queryClient = new QueryClient();
 
@@ -104,8 +107,8 @@ const App = () => (
           <Route path="/air-cargo/airlines" element={<PortDirectory />} />
 
           {/* Maritime */}
-          <Route path="/maritime/containers" element={<RoadFreight />} />
-          <Route path="/maritime/vessels" element={<PortDirectory />} />
+          <Route path="/maritime/containers" element={<ContainerTracking />} />
+          <Route path="/maritime/vessels" element={<VesselSchedule />} />
           <Route path="/maritime/ports" element={<PortDirectory />} />
 
           {/* Finance */}
