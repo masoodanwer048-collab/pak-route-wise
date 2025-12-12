@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Truck, Package, Clock } from "lucide-react";
+import { Search, Plus, Truck, Package, Clock, FileText } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import BiltyTemplate from "@/components/documents/BiltyTemplate";
 
 interface DispatchRecord {
     id: string;
@@ -177,8 +178,45 @@ const Dispatch = () => {
                                             {dispatch.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right flex justify-end gap-2">
                                         <Button variant="ghost" size="sm">Details</Button>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm" className="gap-2">
+                                                    <FileText className="h-4 w-4" /> Bilty
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-4xl h-[90vh] overflow-y-auto">
+                                                <DialogHeader>
+                                                    <DialogTitle>Generate Bilty (S.No: {dispatch.dispatchId})</DialogTitle>
+                                                </DialogHeader>
+                                                <BiltyTemplate data={{
+                                                    grNumber: dispatch.dispatchId.replace('DSP-', ''),
+                                                    date: new Date().toLocaleDateString(),
+                                                    vehicleNo: dispatch.vehicle,
+                                                    driverName: dispatch.driver,
+                                                    driverMobile: "0300-1234567",
+                                                    driverCNIC: "35201-1234567-1",
+                                                    from: "Lahore",
+                                                    to: dispatch.destination,
+                                                    sender: { name: "Sender Ltd", address: "Lahore, Pakistan", phone: "042-111-222" },
+                                                    receiver: { name: "Receiver Corp", address: dispatch.destination, phone: "021-333-444" },
+                                                    items: [
+                                                        { qty: 50, description: dispatch.loadType, packing: "Carton", weight: 500, chargedWeight: 500, rate: "10/kg" }
+                                                    ],
+                                                    totals: {
+                                                        qty: 50,
+                                                        freight: 5000,
+                                                        biltyCharges: 200,
+                                                        labor: 500,
+                                                        other: 0,
+                                                        total: 5700,
+                                                        totalInWords: "Five Thousand Seven Hundred Only"
+                                                    },
+                                                    paymentType: "ToPay"
+                                                }} />
+                                            </DialogContent>
+                                        </Dialog>
                                     </TableCell>
                                 </TableRow>
                             ))}
