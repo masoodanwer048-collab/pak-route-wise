@@ -108,8 +108,8 @@ const navItems: NavItem[] = [
     subItems: [
       { name: 'ATTA Management', path: '/atta/management' },
       { name: 'Transit Pass', path: '/atta/transit-pass' },
-      { name: 'Border Clearance', path: '/atta/border' },
-      { name: 'Bonded Carriers', path: '/atta/carriers' },
+      { name: 'Border Clearance', path: '/atta/border-clearance' },
+      { name: 'Bonded Carriers', path: '/atta/bonded-carriers' },
     ],
   },
   {
@@ -198,7 +198,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function Sidebar() {
+export function SidebarContent() {
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState<string[]>(['dashboard']);
 
@@ -217,103 +217,109 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border">
-      <div className="flex h-full flex-col">
-        {/* Logo */}
-        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sidebar-primary">
-            <Ship className="h-6 w-6 text-sidebar-primary-foreground" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-sidebar-foreground">LogiPak Pro</span>
-            <span className="text-xs text-sidebar-foreground/60">Logistics Management</span>
-          </div>
+    <div className="flex h-full flex-col bg-sidebar">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sidebar-primary">
+          <Ship className="h-6 w-6 text-sidebar-primary-foreground" />
         </div>
+        <div className="flex flex-col">
+          <span className="font-semibold text-sidebar-foreground">LogiPak Pro</span>
+          <span className="text-xs text-sidebar-foreground/60">Logistics Management</span>
+        </div>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <ul className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isExpanded = expandedItems.includes(item.id);
-              const isActive = isItemActive(item);
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <ul className="space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isExpanded = expandedItems.includes(item.id);
+            const isActive = isItemActive(item);
 
-              return (
-                <li key={item.id}>
-                  {item.path ? (
-                    <NavLink
-                      to={item.path}
+            return (
+              <li key={item.id}>
+                {item.path ? (
+                  <NavLink
+                    to={item.path}
+                    className={cn(
+                      'nav-item w-full',
+                      isActive
+                        ? 'nav-item-active'
+                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                  </NavLink>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => toggleExpanded(item.id)}
                       className={cn(
-                        'nav-item w-full',
+                        'nav-item w-full justify-between',
                         isActive
                           ? 'nav-item-active'
                           : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                       )}
                     >
-                      <Icon className="h-5 w-5" />
-                      <span>{item.name}</span>
-                    </NavLink>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => toggleExpanded(item.id)}
-                        className={cn(
-                          'nav-item w-full justify-between',
-                          isActive
-                            ? 'nav-item-active'
-                            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className="h-5 w-5" />
-                          <span>{item.name}</span>
-                        </div>
-                        {isExpanded ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </button>
-                      {isExpanded && item.subItems && (
-                        <ul className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-4">
-                          {item.subItems.map((subItem) => (
-                            <li key={subItem.path}>
-                              <NavLink
-                                to={subItem.path}
-                                className={cn(
-                                  'nav-item text-sm',
-                                  location.pathname === subItem.path
-                                    ? 'text-sidebar-primary'
-                                    : 'text-sidebar-foreground/60 hover:text-sidebar-foreground'
-                                )}
-                              >
-                                {subItem.name}
-                              </NavLink>
-                            </li>
-                          ))}
-                        </ul>
+                      <div className="flex items-center gap-3">
+                        <Icon className="h-5 w-5" />
+                        <span>{item.name}</span>
+                      </div>
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
                       )}
-                    </>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+                    </button>
+                    {isExpanded && item.subItems && (
+                      <ul className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-4">
+                        {item.subItems.map((subItem) => (
+                          <li key={subItem.path}>
+                            <NavLink
+                              to={subItem.path}
+                              className={cn(
+                                'nav-item text-sm',
+                                location.pathname === subItem.path
+                                  ? 'text-sidebar-primary'
+                                  : 'text-sidebar-foreground/60 hover:text-sidebar-foreground'
+                              )}
+                            >
+                              {subItem.name}
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
 
-        {/* Footer */}
-        <div className="border-t border-sidebar-border p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-accent">
-              <Building2 className="h-5 w-5 text-sidebar-foreground" />
-            </div>
-            <div className="flex-1 truncate">
-              <p className="text-sm font-medium text-sidebar-foreground">Demo Corp Ltd</p>
-              <p className="text-xs text-sidebar-foreground/60">NTN: 1234567-8</p>
-            </div>
+      {/* Footer */}
+      <div className="border-t border-sidebar-border p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-accent">
+            <Building2 className="h-5 w-5 text-sidebar-foreground" />
+          </div>
+          <div className="flex-1 truncate">
+            <p className="text-sm font-medium text-sidebar-foreground">Demo Corp Ltd</p>
+            <p className="text-xs text-sidebar-foreground/60">NTN: 1234567-8</p>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="fixed left-0 top-0 z-40 hidden md:block h-screen w-64 border-r border-sidebar-border">
+      <SidebarContent />
     </aside>
   );
 }
