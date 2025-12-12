@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +32,7 @@ import {
   Search,
   Download,
   FileText,
-  Ship,
+  Plane,
   MoreHorizontal,
   Eye,
   Edit,
@@ -41,7 +41,7 @@ import {
   Trash2,
   CheckCircle,
   Clock,
-  AlertCircle,
+  Package,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDocuments, ShippingDocument, DocumentStatus } from '@/hooks/useDocuments';
@@ -58,7 +58,7 @@ const statusColors: Record<DocumentStatus, string> = {
   cancelled: 'bg-muted text-muted-foreground',
 };
 
-export default function BillOfLading() {
+export default function AirWaybill() {
   const {
     documents,
     filters,
@@ -67,42 +67,41 @@ export default function BillOfLading() {
     updateDocument,
     deleteDocument,
     updateFilters,
-  } = useDocuments('bl');
+  } = useDocuments('awb');
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editDocument, setEditDocument] = useState<ShippingDocument | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [viewDocument, setViewDocument] = useState<ShippingDocument | null>(null);
 
   const handleSave = (docData: Omit<ShippingDocument, 'id' | 'createdAt'>) => {
     if (editDocument) {
       updateDocument(editDocument.id, docData);
-      toast.success('Bill of Lading updated successfully');
+      toast.success('Air Waybill updated successfully');
       setEditDocument(null);
     } else {
       addDocument(docData);
-      toast.success('Bill of Lading created successfully');
+      toast.success('Air Waybill created successfully');
     }
   };
 
   const handleDelete = () => {
     if (deleteId) {
       deleteDocument(deleteId);
-      toast.success('Bill of Lading deleted');
+      toast.success('Air Waybill deleted');
       setDeleteId(null);
     }
   };
 
   const handleCopy = (docNumber: string) => {
     navigator.clipboard.writeText(docNumber);
-    toast.success('BL number copied to clipboard');
+    toast.success('AWB number copied to clipboard');
   };
 
   const handleExport = () => {
     const csv = [
-      ['BL Number', 'Vessel', 'Voyage', 'POL', 'POD', 'Shipper', 'Consignee', 'Weight', 'Status', 'Date'].join(','),
+      ['AWB Number', 'Flight', 'Carrier', 'Origin', 'Destination', 'Shipper', 'Consignee', 'Weight', 'Status', 'Date'].join(','),
       ...documents.map((d) =>
-        [d.documentNumber, d.vesselFlightTruck, d.voyageFlightNo, d.pol, d.pod, d.shipper, d.consignee, d.weight, d.status, d.issueDate].join(',')
+        [d.documentNumber, d.voyageFlightNo, d.carrier, d.origin, d.destination, d.shipper, d.consignee, d.weight, d.status, d.issueDate].join(',')
       ),
     ].join('\n');
 
@@ -110,13 +109,13 @@ export default function BillOfLading() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bill-of-lading-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `air-waybills-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     toast.success('Export completed');
   };
 
   return (
-    <MainLayout title="Bill of Lading" subtitle="Manage and track ocean shipping documents">
+    <MainLayout title="Air Waybill (AWB)" subtitle="Manage air cargo shipping documents">
       <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -124,7 +123,7 @@ export default function BillOfLading() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search BL number, vessel, consignee..."
+                placeholder="Search AWB number, flight, consignee..."
                 className="pl-9 w-full sm:w-80"
                 value={filters.search}
                 onChange={(e) => updateFilters({ search: e.target.value })}
@@ -141,8 +140,6 @@ export default function BillOfLading() {
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="original">Original</SelectItem>
-                <SelectItem value="telex">Telex</SelectItem>
                 <SelectItem value="released">Released</SelectItem>
                 <SelectItem value="hold">Hold</SelectItem>
               </SelectContent>
@@ -155,7 +152,7 @@ export default function BillOfLading() {
             </Button>
             <Button variant="accent" onClick={() => setIsCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Create BL</span>
+              <span className="hidden sm:inline">Create AWB</span>
               <span className="sm:hidden">New</span>
             </Button>
           </div>
@@ -170,7 +167,7 @@ export default function BillOfLading() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-sm text-muted-foreground">Total BLs</p>
+                <p className="text-sm text-muted-foreground">Total AWBs</p>
               </div>
             </div>
           </div>
@@ -199,121 +196,153 @@ export default function BillOfLading() {
           <div className="stat-card border border-border">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                <FileText className="h-5 w-5" />
+                <Plane className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.telex}</p>
-                <p className="text-sm text-muted-foreground">Telex Release</p>
+                <p className="text-2xl font-bold">{stats.draft}</p>
+                <p className="text-sm text-muted-foreground">Draft</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* BL Cards - Responsive Grid */}
-        {documents.length === 0 ? (
-          <div className="rounded-xl border border-border bg-card p-12 text-center">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="font-semibold mb-2">No Bills of Lading found</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              {filters.search || filters.status !== 'all'
-                ? 'Try adjusting your filters'
-                : 'Create your first Bill of Lading to get started'}
-            </p>
-            <Button variant="accent" onClick={() => setIsCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create BL
-            </Button>
+        {/* AWB Table - Desktop */}
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>AWB Number</th>
+                  <th>Flight / Aircraft</th>
+                  <th>Route</th>
+                  <th>Shipper</th>
+                  <th>Consignee</th>
+                  <th>Weight</th>
+                  <th>Status</th>
+                  <th className="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {documents.map((doc) => (
+                  <tr key={doc.id}>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <Plane className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-mono font-medium">{doc.documentNumber}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{doc.voyageFlightNo}</span>
+                        <span className="text-xs text-muted-foreground">{doc.vesselFlightTruck}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{doc.origin}</span>
+                        <span className="text-xs text-muted-foreground">→ {doc.destination}</span>
+                      </div>
+                    </td>
+                    <td className="truncate max-w-[150px]">{doc.shipper}</td>
+                    <td className="truncate max-w-[150px]">{doc.consignee}</td>
+                    <td className="font-mono text-sm">{doc.weight}</td>
+                    <td>
+                      <Badge variant="outline" className={cn('capitalize', statusColors[doc.status])}>
+                        {doc.status}
+                      </Badge>
+                    </td>
+                    <td>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditDocument(doc)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-popover">
+                            <DropdownMenuItem onClick={() => handleCopy(doc.documentNumber)}>
+                              <Copy className="h-4 w-4 mr-2" />
+                              Copy AWB Number
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Printer className="h-4 w-4 mr-2" />
+                              Print
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setDeleteId(doc.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+          {/* Mobile Cards */}
+          <div className="lg:hidden divide-y divide-border">
             {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="rounded-xl border border-border bg-card p-5 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="font-mono font-semibold text-lg">{doc.documentNumber}</p>
-                    <p className="text-sm text-muted-foreground">{doc.issueDate}</p>
+              <div key={doc.id} className="p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <Plane className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-mono font-medium text-sm">{doc.documentNumber}</span>
                   </div>
-                  <Badge variant="outline" className={cn('capitalize', statusColors[doc.status])}>
+                  <Badge variant="outline" className={cn('capitalize text-xs', statusColors[doc.status])}>
                     {doc.status}
                   </Badge>
                 </div>
 
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Ship className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{doc.vesselFlightTruck}</span>
-                    <span className="text-muted-foreground">({doc.voyageFlightNo})</span>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">From</p>
+                    <p className="font-medium truncate">{doc.origin}</p>
                   </div>
-
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <span className="truncate">{doc.pol || doc.origin}</span>
-                    <span>→</span>
-                    <span className="truncate">{doc.pod || doc.destination}</span>
-                  </div>
-
-                  <div className="pt-2 border-t border-border">
-                    <p className="text-xs text-muted-foreground mb-1">Consignee</p>
-                    <p className="font-medium truncate">{doc.consignee}</p>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 pt-2">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Containers</p>
-                      <p className="font-mono font-medium">{doc.containers.length}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Weight</p>
-                      <p className="font-mono text-sm truncate">{doc.weight}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">CBM</p>
-                      <p className="font-mono text-sm truncate">{doc.volume}</p>
-                    </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">To</p>
+                    <p className="font-medium truncate">{doc.destination}</p>
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => setViewDocument(doc)}>
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => setEditDocument(doc)}>
+                <div className="flex items-center justify-between text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Consignee</p>
+                    <p className="font-medium truncate">{doc.consignee}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Weight</p>
+                    <p className="font-mono">{doc.weight}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => setEditDocument(doc)}>
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-popover">
-                      <DropdownMenuItem onClick={() => handleCopy(doc.documentNumber)}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy BL Number
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Printer className="h-4 w-4 mr-2" />
-                        Print
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setDeleteId(doc.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setDeleteId(doc.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Create/Edit Dialog */}
@@ -325,7 +354,7 @@ export default function BillOfLading() {
             setEditDocument(null);
           }
         }}
-        type="bl"
+        type="awb"
         document={editDocument}
         onSave={handleSave}
       />
@@ -334,9 +363,9 @@ export default function BillOfLading() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Bill of Lading</AlertDialogTitle>
+            <AlertDialogTitle>Delete Air Waybill</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this Bill of Lading? This action cannot be undone.
+              Are you sure you want to delete this Air Waybill? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
