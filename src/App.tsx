@@ -14,6 +14,8 @@ import HSCodeLookup from "./pages/customs/HSCodeLookup";
 import BillOfLading from "./pages/documents/BillOfLading";
 import TransitManagement from "./pages/atta/TransitManagement";
 import PortDirectory from "./pages/maritime/PortDirectory";
+import AirWaybill from "./pages/documents/AirWaybill";
+import Bilty from "./pages/documents/Bilty";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,8 +38,8 @@ const App = () => (
           
           {/* Documents */}
           <Route path="/documents/bl" element={<BillOfLading />} />
-          <Route path="/documents/bilty" element={<BillOfLading />} />
-          <Route path="/documents/awb" element={<BillOfLading />} />
+          <Route path="/documents/bilty" element={<Bilty />} />
+          <Route path="/documents/awb" element={<AirWaybill />} />
           <Route path="/documents/manifest" element={<BillOfLading />} />
           
           {/* Customs */}
