@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import RoadFreight from "./pages/freight/RoadFreight";
+import SeaFreight from "./pages/freight/SeaFreight";
+import AirFreight from "./pages/freight/AirFreight";
+import RailFreight from "./pages/freight/RailFreight";
+import RateCalculator from "./pages/freight/RateCalculator";
 import GDFiling from "./pages/customs/GDFiling";
 import HSCodeLookup from "./pages/customs/HSCodeLookup";
 import BillOfLading from "./pages/documents/BillOfLading";
@@ -25,10 +29,10 @@ const App = () => (
           
           {/* Freight Management */}
           <Route path="/freight/road" element={<RoadFreight />} />
-          <Route path="/freight/sea" element={<RoadFreight />} />
-          <Route path="/freight/air" element={<RoadFreight />} />
-          <Route path="/freight/rail" element={<RoadFreight />} />
-          <Route path="/freight/calculator" element={<RoadFreight />} />
+          <Route path="/freight/sea" element={<SeaFreight />} />
+          <Route path="/freight/air" element={<AirFreight />} />
+          <Route path="/freight/rail" element={<RailFreight />} />
+          <Route path="/freight/calculator" element={<RateCalculator />} />
           
           {/* Documents */}
           <Route path="/documents/bl" element={<BillOfLading />} />

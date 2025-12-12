@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Download } from 'lucide-react';
+import { Plus, Search, Download, Ship } from 'lucide-react';
 import { useFreightShipments, FreightShipment } from '@/hooks/useFreightShipments';
 import { FreightStats } from '@/components/freight/FreightStats';
 import { FreightTable } from '@/components/freight/FreightTable';
@@ -11,7 +11,7 @@ import { ShipmentDialog } from '@/components/freight/ShipmentDialog';
 import { ShipmentViewDialog } from '@/components/freight/ShipmentViewDialog';
 import { toast } from 'sonner';
 
-export default function RoadFreight() {
+export default function SeaFreight() {
   const {
     shipments,
     allShipments,
@@ -22,7 +22,7 @@ export default function RoadFreight() {
     deleteShipment,
     updateFilters,
     clearFilters,
-  } = useFreightShipments('road');
+  } = useFreightShipments('sea');
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editShipment, setEditShipment] = useState<FreightShipment | null>(null);
@@ -44,9 +44,9 @@ export default function RoadFreight() {
 
   const handleExport = () => {
     const csv = [
-      ['Reference', 'Origin', 'Destination', 'Carrier', 'Truck', 'Driver', 'Weight', 'Units', 'Status', 'ETA'].join(','),
+      ['Reference', 'Origin', 'Destination', 'Carrier', 'Vessel', 'Weight', 'Containers', 'Status', 'ETA'].join(','),
       ...shipments.map((s) =>
-        [s.reference, s.origin, s.destination, s.carrier, s.vehicle, s.driver, s.weight, s.containers, s.status, s.eta].join(',')
+        [s.reference, s.origin, s.destination, s.carrier, s.vehicle, s.weight, s.containers, s.status, s.eta].join(',')
       ),
     ].join('\n');
 
@@ -54,13 +54,13 @@ export default function RoadFreight() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `road-freight-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `sea-freight-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     toast.success('Export completed');
   };
 
   return (
-    <MainLayout title="Road Freight" subtitle="Manage road transportation and trucking operations">
+    <MainLayout title="Sea Freight" subtitle="Manage ocean shipping and container operations">
       <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -68,7 +68,7 @@ export default function RoadFreight() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search truck, driver, consignee..."
+                placeholder="Search vessel, carrier, consignee..."
                 className="pl-9 w-full sm:w-80"
                 value={filters.search}
                 onChange={(e) => updateFilters({ search: e.target.value })}
@@ -96,7 +96,7 @@ export default function RoadFreight() {
         </div>
 
         {/* Stats Cards */}
-        <FreightStats mode="road" stats={stats} />
+        <FreightStats mode="sea" stats={stats} />
 
         {/* Shipments Table */}
         <FreightTable
@@ -116,7 +116,7 @@ export default function RoadFreight() {
             setEditShipment(null);
           }
         }}
-        mode="road"
+        mode="sea"
         shipment={editShipment}
         onSave={handleSave}
       />
