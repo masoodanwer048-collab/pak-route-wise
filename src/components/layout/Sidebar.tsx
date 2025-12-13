@@ -158,7 +158,7 @@ const navItems: NavItem[] = [
     icon: DollarSign,
     subItems: [
       { name: 'Invoices', path: '/finance/invoices' },
-      { name: 'Duty Payments', path: '/finance/duty-payments' },
+      { name: 'Duty Payments', path: '/finance/duties' },
       { name: 'Demurrage', path: '/finance/demurrage' },
       { name: 'Reports', path: '/finance/reports' },
     ],
