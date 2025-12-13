@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Truck, Package, Clock, FileText } from "lucide-react";
+import { Search, Plus, Truck, Package, Clock, FileText, CloudDownload, Mail } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BiltyTemplate from "@/components/documents/BiltyTemplate";
+import ActionsMenu from "@/components/common/ActionsMenu";
 
 interface DispatchRecord {
     id: string;
@@ -31,6 +32,11 @@ const initialDispatches: DispatchRecord[] = [
 const Dispatch = () => {
     const [dispatches, setDispatches] = useState<DispatchRecord[]>(initialDispatches);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+    // State for Bilty Dialog
+    const [selectedDispatch, setSelectedDispatch] = useState<DispatchRecord | null>(null);
+    const [isBiltyOpen, setIsBiltyOpen] = useState(false);
+
     const { toast } = useToast();
 
     const handleCreateDispatch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -52,6 +58,16 @@ const Dispatch = () => {
             title: "Dispatch Created",
             description: `Dispatch ${newDispatch.dispatchId} scheduled for ${newDispatch.destination}.`
         });
+    };
+
+    const handleDelete = (id: string) => {
+        setDispatches(dispatches.filter(d => d.id !== id));
+        toast({ title: "Record Deleted", description: "Dispatch record removed." });
+    };
+
+    const handleGenerateBilty = (dispatch: DispatchRecord) => {
+        setSelectedDispatch(dispatch);
+        setIsBiltyOpen(true);
     };
 
     return (
@@ -178,45 +194,30 @@ const Dispatch = () => {
                                             {dispatch.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm">Details</Button>
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm" className="gap-2">
-                                                    <FileText className="h-4 w-4" /> Bilty
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-4xl h-[90vh] overflow-y-auto">
-                                                <DialogHeader>
-                                                    <DialogTitle>Generate Bilty (S.No: {dispatch.dispatchId})</DialogTitle>
-                                                </DialogHeader>
-                                                <BiltyTemplate data={{
-                                                    grNumber: dispatch.dispatchId.replace('DSP-', ''),
-                                                    date: new Date().toLocaleDateString(),
-                                                    vehicleNo: dispatch.vehicle,
-                                                    driverName: dispatch.driver,
-                                                    driverMobile: "0300-1234567",
-                                                    driverCNIC: "35201-1234567-1",
-                                                    from: "Lahore",
-                                                    to: dispatch.destination,
-                                                    sender: { name: "Sender Ltd", address: "Lahore, Pakistan", phone: "042-111-222" },
-                                                    receiver: { name: "Receiver Corp", address: dispatch.destination, phone: "021-333-444" },
-                                                    items: [
-                                                        { qty: 50, description: dispatch.loadType, packing: "Carton", weight: 500, chargedWeight: 500, rate: "10/kg" }
-                                                    ],
-                                                    totals: {
-                                                        qty: 50,
-                                                        freight: 5000,
-                                                        biltyCharges: 200,
-                                                        labor: 500,
-                                                        other: 0,
-                                                        total: 5700,
-                                                        totalInWords: "Five Thousand Seven Hundred Only"
-                                                    },
-                                                    paymentType: "ToPay"
-                                                }} />
-                                            </DialogContent>
-                                        </Dialog>
+                                    <TableCell className="text-right">
+                                        <ActionsMenu
+                                            onView={() => toast({ description: `Viewing details for ${dispatch.dispatchId}` })}
+                                            onEdit={() => toast({ description: `Editing ${dispatch.dispatchId} (Demo)` })}
+                                            onDelete={() => handleDelete(dispatch.id)}
+                                            onPrint={() => window.print()}
+                                            customActions={[
+                                                {
+                                                    label: "Generate Bilty",
+                                                    icon: <FileText className="h-4 w-4" />,
+                                                    onClick: () => handleGenerateBilty(dispatch)
+                                                },
+                                                {
+                                                    label: "Download Manifest",
+                                                    icon: <CloudDownload className="h-4 w-4" />,
+                                                    onClick: () => toast({ description: "Downloading Manifest..." })
+                                                },
+                                                {
+                                                    label: "Email to Driver",
+                                                    icon: <Mail className="h-4 w-4" />,
+                                                    onClick: () => toast({ description: "Email sent." })
+                                                }
+                                            ]}
+                                        />
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -224,6 +225,42 @@ const Dispatch = () => {
                     </Table>
                 </CardContent>
             </Card>
+
+            {/* Bilty Dialog Managed Externally */}
+            <Dialog open={isBiltyOpen} onOpenChange={setIsBiltyOpen}>
+                <DialogContent className="max-w-4xl h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Generate Bilty (S.No: {selectedDispatch?.dispatchId})</DialogTitle>
+                    </DialogHeader>
+                    {selectedDispatch && (
+                        <BiltyTemplate data={{
+                            grNumber: selectedDispatch.dispatchId.replace('DSP-', ''),
+                            date: new Date().toLocaleDateString(),
+                            vehicleNo: selectedDispatch.vehicle,
+                            driverName: selectedDispatch.driver,
+                            driverMobile: "0300-1234567",
+                            driverCNIC: "35201-1234567-1",
+                            from: "Lahore",
+                            to: selectedDispatch.destination,
+                            sender: { name: "Sender Ltd", address: "Lahore, Pakistan", phone: "042-111-222" },
+                            receiver: { name: "Receiver Corp", address: selectedDispatch.destination, phone: "021-333-444" },
+                            items: [
+                                { qty: 50, description: selectedDispatch.loadType, packing: "Carton", weight: 500, chargedWeight: 500, rate: "10/kg" }
+                            ],
+                            totals: {
+                                qty: 50,
+                                freight: 5000,
+                                biltyCharges: 200,
+                                labor: 500,
+                                other: 0,
+                                total: 5700,
+                                totalInWords: "Five Thousand Seven Hundred Only"
+                            },
+                            paymentType: "ToPay"
+                        }} />
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
