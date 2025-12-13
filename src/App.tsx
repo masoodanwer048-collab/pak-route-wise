@@ -36,6 +36,10 @@ import BondedWarehouse from "./pages/warehouse/BondedWarehouse";
 import ContainerTracking from "./pages/maritime/ContainerTracking";
 import VesselSchedule from "./pages/maritime/VesselSchedule";
 import PortDirectory from "./pages/maritime/PortDirectory";
+import Invoices from "./pages/finance/Invoices";
+import DutyPayments from "./pages/finance/DutyPayments";
+import Demurrage from "./pages/finance/Demurrage";
+import FinancialReports from "./pages/finance/FinancialReports";
 
 const queryClient = new QueryClient();
 
@@ -112,10 +116,10 @@ const App = () => (
           <Route path="/maritime/ports" element={<PortDirectory />} />
 
           {/* Finance */}
-          <Route path="/finance/invoices" element={<GDFiling />} />
-          <Route path="/finance/duty-payments" element={<GDFiling />} />
-          <Route path="/finance/demurrage" element={<GDFiling />} />
-          <Route path="/finance/reports" element={<GDFiling />} />
+          <Route path="/finance/invoices" element={<Invoices />} />
+          <Route path="/finance/duties" element={<DutyPayments />} />
+          <Route path="/finance/demurrage" element={<Demurrage />} />
+          <Route path="/finance/reports" element={<FinancialReports />} />
 
           {/* Compliance */}
           <Route path="/compliance/documents" element={<BillOfLading />} />
