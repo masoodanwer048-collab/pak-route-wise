@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  Plus,
+  Search,
+  Filter,
   Download,
   FileText,
   CheckCircle,
@@ -19,12 +19,16 @@ import {
   MoreHorizontal,
   Copy,
   Shield,
-  ArrowUpDown
+  ArrowUpDown,
+  FileSpreadsheet,
+  ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGoodsDeclaration, GDFormData } from '@/hooks/useGoodsDeclaration';
 import { GDDialog } from '@/components/customs/GDDialog';
 import { GDViewDialog } from '@/components/customs/GDViewDialog';
+import OfficialGDForm from "@/components/customs/OfficialGDForm";
+import ActionsMenu from "@/components/common/ActionsMenu";
 import { GoodsDeclaration } from '@/types/logistics';
 import {
   Select,
@@ -44,6 +48,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import * as XLSX from 'xlsx';
 
 const statusConfig = {
   draft: { color: 'bg-muted text-muted-foreground', icon: FileText, label: 'Draft' },
@@ -89,17 +94,27 @@ export default function GDFiling() {
     deleteGD,
   } = useGoodsDeclaration();
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'form'>('list');
+  const [dialogOpen, setDialogOpen] = useState(false); // Legacy dialog
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedGD, setSelectedGD] = useState<GoodsDeclaration | null>(null);
 
-  const handleCreate = (data: GDFormData) => {
+  const handleCreateNew = () => {
+    setSelectedGD(null);
+    setViewMode('form');
+  };
+
+  const handleCreateLegacy = (data: GDFormData) => {
     addGD(data);
+    setDialogOpen(false);
   };
 
   const handleEdit = (gd: GoodsDeclaration) => {
     setSelectedGD(gd);
-    setDialogOpen(true);
+    // Use the new form for editing if possible, or fallback to dialog
+    // For now, let's open the dialog for quick edits as per old flow, or switch to form mode?
+    // Let's stick to the new form for consistent experience.
+    setViewMode('form');
   };
 
   const handleView = (gd: GoodsDeclaration) => {
@@ -108,7 +123,9 @@ export default function GDFiling() {
   };
 
   const handleDelete = (gd: GoodsDeclaration) => {
+    // Confirm?
     deleteGD(gd.id);
+    toast.success("GD record deleted");
   };
 
   const handleCopyRef = (gdNumber: string) => {
@@ -116,18 +133,35 @@ export default function GDFiling() {
     toast.success('GD number copied to clipboard');
   };
 
-  const handleExport = () => {
-    const csv = gds.map(gd => 
-      `${gd.gdNumber},${gd.gdType},${gd.blNumber},${gd.importer.name},${gd.hsCode},${gd.invoiceValue},${gd.totalDutyTax},${gd.status}`
-    ).join('\n');
-    const header = 'GD Number,Type,BL Number,Importer,HS Code,Value,Duty,Status\n';
-    const blob = new Blob([header + csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `gd-filing-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click();
-    toast.success('Exported to CSV');
+  const handleExportExcel = () => {
+    const dataToExport = gds.map(gd => ({
+      "GD Number": gd.gdNumber,
+      "Filing Date": format(new Date(gd.filingDate), 'yyyy-MM-dd'),
+      "Type": gd.gdType,
+      "BL Number": gd.blNumber,
+      "Importer": gd.importer.name,
+      "HS Code": gd.hsCode,
+      "Description": gd.goodsDescription.substring(0, 50) + "...",
+      "Invoice Value": gd.invoiceValue,
+      "Total Duty": gd.totalDutyTax,
+      "Status": gd.status
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Goods Declarations");
+
+    // Auto-width columns roughly
+    const max_width = dataToExport.reduce((w, r) => Math.max(w, r["Importer"].length), 10);
+    worksheet["!cols"] = [{ wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: max_width }, { wch: 12 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 10 }];
+
+    XLSX.writeFile(workbook, `GD_Filing_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+    toast.success("Excel export generated");
+  };
+
+  const handleExportPDF = () => {
+    // Basic browser print for the current view
+    window.print();
   };
 
   const toggleSort = (field: 'filingDate' | 'gdNumber' | 'invoiceValue') => {
@@ -139,12 +173,32 @@ export default function GDFiling() {
     }
   };
 
+  // Render Form View
+  if (viewMode === 'form') {
+    return (
+      <div className="p-4 md:p-8 max-w-7xl mx-auto animate-slide-up">
+        <div className="flex items-center gap-4 mb-6 print:hidden">
+          <Button variant="ghost" onClick={() => setViewMode('list')} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Back to GD List
+          </Button>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {selectedGD ? `Edit GD: ${selectedGD.gdNumber}` : 'New Goods Declaration'}
+          </h1>
+        </div>
+        {/* Pass initial data if we had a full GD object compatible with OfficialGDForm props. 
+                   Since OfficialGDForm manages its own state for now, we render it fresh or with prop injection if supported. 
+                   We will assume OfficialGDForm can be used standalone for now. */}
+        <OfficialGDForm />
+      </div>
+    );
+  }
+
   return (
-    <MainLayout 
-      title="GD Filing" 
+    <MainLayout
+      title="GD Filing"
       subtitle="Goods Declaration filing for import, export & transit"
     >
-      <div className="space-y-6">
+      <div className="space-y-6 print:hidden">
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -173,12 +227,16 @@ export default function GDFiling() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExportPDF}>
+              <FileText className="h-4 w-4 mr-2 text-red-600" />
+              Export PDF
             </Button>
-            <Button variant="accent" onClick={() => { setSelectedGD(null); setDialogOpen(true); }}>
+            <Button variant="outline" onClick={handleExportExcel}>
+              <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" />
+              Export Excel
+            </Button>
+            <Button variant="accent" onClick={handleCreateNew}>
               <Plus className="h-4 w-4 mr-2" />
               New GD
             </Button>
@@ -229,10 +287,10 @@ export default function GDFiling() {
             {gds.map((gd) => {
               const status = statusConfig[gd.status as keyof typeof statusConfig] || statusConfig.draft;
               const StatusIcon = status.icon;
-              
+
               return (
-                <div 
-                  key={gd.id} 
+                <div
+                  key={gd.id}
                   className="rounded-xl border border-border bg-card p-4 space-y-3"
                   onClick={() => handleView(gd)}
                 >
@@ -246,19 +304,19 @@ export default function GDFiling() {
                       {status.label}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className={cn('capitalize', typeConfig[gd.gdType])}>
                       {gd.gdType}
                     </Badge>
                     <span className="text-xs font-mono text-muted-foreground">{gd.blNumber}</span>
                   </div>
-                  
+
                   <div>
                     <p className="text-sm font-medium">{gd.importer.name}</p>
                     <p className="text-xs text-muted-foreground">{gd.hsCode} - {gd.goodsDescription}</p>
                   </div>
-                  
+
                   <div className="flex justify-between pt-2 border-t border-border">
                     <div>
                       <p className="text-xs text-muted-foreground">Value</p>
@@ -269,18 +327,13 @@ export default function GDFiling() {
                       <p className="font-mono text-sm font-medium text-accent">{formatCurrency(gd.totalDutyTax)}</p>
                     </div>
                   </div>
-                  
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); handleEdit(gd); }}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleCopyRef(gd.gdNumber); }}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(gd); }}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+
+                  <div className="flex gap-2 pt-2 justify-end">
+                    <ActionsMenu
+                      onEdit={() => handleEdit(gd)}
+                      onView={() => handleView(gd)}
+                      onDelete={() => handleDelete(gd)}
+                    />
                   </div>
                 </div>
               );
@@ -293,7 +346,7 @@ export default function GDFiling() {
                 <thead>
                   <tr>
                     <th>
-                      <button 
+                      <button
                         className="flex items-center gap-1 hover:text-foreground"
                         onClick={() => toggleSort('gdNumber')}
                       >
@@ -306,7 +359,7 @@ export default function GDFiling() {
                     <th>Importer/Exporter</th>
                     <th>HS Code</th>
                     <th>
-                      <button 
+                      <button
                         className="flex items-center gap-1 hover:text-foreground"
                         onClick={() => toggleSort('invoiceValue')}
                       >
@@ -323,7 +376,7 @@ export default function GDFiling() {
                   {gds.map((gd) => {
                     const status = statusConfig[gd.status as keyof typeof statusConfig] || statusConfig.draft;
                     const StatusIcon = status.icon;
-                    
+
                     return (
                       <tr key={gd.id}>
                         <td>
@@ -353,40 +406,16 @@ export default function GDFiling() {
                             {status.label}
                           </span>
                         </td>
-                        <td>
-                          <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleView(gd)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(gd)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleCopyRef(gd.gdNumber)}>
-                                  <Copy className="h-4 w-4 mr-2" />
-                                  Copy GD Number
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleView(gd)}>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  className="text-destructive"
-                                  onClick={() => handleDelete(gd)}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                        <td className="text-right">
+                          <ActionsMenu
+                            onView={() => handleView(gd)}
+                            onEdit={() => handleEdit(gd)}
+                            onDelete={() => handleDelete(gd)}
+                            onPrint={() => toast.info("Printing GD...")}
+                            customActions={[
+                              { label: "Copy Ref", onClick: () => handleCopyRef(gd.gdNumber), icon: <Copy className="h-4 w-4" /> }
+                            ]}
+                          />
                         </td>
                       </tr>
                     );
@@ -402,11 +431,11 @@ export default function GDFiling() {
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="font-medium mb-2">No declarations found</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {searchQuery || statusFilter !== 'all' 
+              {searchQuery || statusFilter !== 'all'
                 ? 'Try adjusting your search or filters'
                 : 'Get started by filing a new Goods Declaration'}
             </p>
-            <Button variant="accent" onClick={() => { setSelectedGD(null); setDialogOpen(true); }}>
+            <Button variant="accent" onClick={handleCreateNew}>
               <Plus className="h-4 w-4 mr-2" />
               New GD
             </Button>
@@ -418,7 +447,7 @@ export default function GDFiling() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         gd={selectedGD}
-        onSubmit={selectedGD ? (data) => updateGD(selectedGD.id, data) : handleCreate}
+        onSubmit={selectedGD ? (data) => updateGD(selectedGD.id, data) : handleCreateLegacy}
       />
 
       <GDViewDialog
