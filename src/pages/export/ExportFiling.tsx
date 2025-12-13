@@ -1,4 +1,5 @@
 import React from "react";
+import { MainLayout } from '@/components/layout/MainLayout';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -51,178 +52,175 @@ const ExportFiling = () => {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Export Filing (GD)</h1>
-        <p className="text-muted-foreground">Submit your Goods Declaration for export.</p>
+    <MainLayout title="Export Filing (GD)" subtitle="Submit your Goods Declaration for export.">
+      <div className="space-y-6 animate-slide-up">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <CardTitle className="text-primary">Exporter Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="exporterName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Exporter Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter company name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="exporterNTN"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>NTN / Strn</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter NTN" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <CardTitle className="text-primary">Consignee Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="consigneeName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Consignee Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter consignee name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="consigneeAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter full address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="destinationCountry"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Destination Country</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter country" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
+              <CardHeader>
+                <CardTitle className="text-primary">Shipment Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="itemDescription"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Item Description</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Describe the goods" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="hsCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>HS Code</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Search HS Code" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantity</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter quantity" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="weight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weight (kg)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter weight" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="invoiceValue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Invoice Value (USD)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter value" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+              <Button type="submit" size="lg" className="w-full md:w-auto">
+                Submit Filing
+              </Button>
+            </div>
+          </form>
+        </Form>
       </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-              <CardHeader>
-                <CardTitle className="text-primary">Exporter Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="exporterName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Exporter Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter company name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="exporterNTN"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>NTN / Strn</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter NTN" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-              <CardHeader>
-                <CardTitle className="text-primary">Consignee Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="consigneeName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Consignee Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter consignee name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="consigneeAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter full address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="destinationCountry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Destination Country</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter country" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="text-primary">Shipment Details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="itemDescription"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Item Description</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Describe the goods" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="hsCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>HS Code</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Search HS Code" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantity</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Enter quantity" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Weight (kg)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Enter weight" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="invoiceValue"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Invoice Value (USD)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Enter value" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button type="submit" size="lg" className="w-full md:w-auto">
-              Submit Filing
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
+    </MainLayout>
   );
 };
 

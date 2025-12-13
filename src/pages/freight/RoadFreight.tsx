@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import ExportActions from '@/components/common/ExportActions';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,22 +43,7 @@ export default function RoadFreight() {
     }
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['Reference', 'Origin', 'Destination', 'Carrier', 'Truck', 'Driver', 'Weight', 'Units', 'Status', 'ETA'].join(','),
-      ...shipments.map((s) =>
-        [s.reference, s.origin, s.destination, s.carrier, s.vehicle, s.driver, s.weight, s.containers, s.status, s.eta].join(',')
-      ),
-    ].join('\n');
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `road-freight-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    toast.success('Export completed');
-  };
 
   return (
     <MainLayout title="Road Freight" subtitle="Manage road transportation and trucking operations">
@@ -83,10 +69,16 @@ export default function RoadFreight() {
             />
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
+            <ExportActions
+              data={shipments}
+              fileName="road_freight_shipments"
+              columnMapping={{
+                reference: "Ref ID",
+                vehicle: "Truck #",
+                driver: "Driver",
+                eta: "Estimated Arrival",
+              }}
+            />
             <Button variant="accent" onClick={() => setIsCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">New Shipment</span>

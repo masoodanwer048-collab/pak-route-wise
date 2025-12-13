@@ -2,7 +2,22 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import Login from "./pages/Login";
+
+// ... imports
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { currentUser } = useAuth();
+  const location = useLocation();
+
+  if (!currentUser) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
 import Index from "./pages/Index";
 import RoadFreight from "./pages/freight/RoadFreight";
 import SeaFreight from "./pages/freight/SeaFreight";
@@ -11,8 +26,13 @@ import RailFreight from "./pages/freight/RailFreight";
 import RateCalculator from "./pages/freight/RateCalculator";
 import GDFiling from "./pages/customs/GDFiling";
 import HSCodeLookup from "./pages/customs/HSCodeLookup";
+import DutyAssessment from "./pages/import/DutyAssessment";
+import ImportIndex from "./pages/import/ImportIndex";
+import IGMManagement from "./pages/import/IGMManagement";
+import ReleaseOrders from "./pages/import/ReleaseOrders";
 import BillOfLading from "./pages/documents/BillOfLading";
 import TransitManagement from "./pages/atta/TransitManagement";
+import DesignSystem from "./pages/DesignSystem";
 
 import AirWaybill from "./pages/documents/AirWaybill";
 import Bilty from "./pages/documents/Bilty";
@@ -43,107 +63,119 @@ import FinancialReports from "./pages/finance/FinancialReports";
 import DocumentsManager from "./pages/compliance/DocumentsManager";
 import CustomsRules from "./pages/compliance/CustomsRules";
 import AuditTrail from "./pages/compliance/AuditTrail";
+import SettingsLayout from "./pages/settings/SettingsLayout";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
+  <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-          {/* Freight Management */}
-          <Route path="/freight/road" element={<RoadFreight />} />
-          <Route path="/freight/sea" element={<SeaFreight />} />
-          <Route path="/freight/air" element={<AirFreight />} />
-          <Route path="/freight/rail" element={<RailFreight />} />
-          <Route path="/freight/calculator" element={<RateCalculator />} />
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="/" element={<Index />} />
 
-          {/* Documents */}
-          <Route path="/documents/bl" element={<BillOfLading />} />
-          <Route path="/documents/bilty" element={<Bilty />} />
-          <Route path="/documents/awb" element={<AirWaybill />} />
-          <Route path="/documents/manifest" element={<BillOfLading />} />
+                  {/* Freight Management */}
+                  <Route path="/freight/road" element={<RoadFreight />} />
+                  <Route path="/freight/sea" element={<SeaFreight />} />
+                  <Route path="/freight/air" element={<AirFreight />} />
+                  <Route path="/freight/rail" element={<RailFreight />} />
+                  <Route path="/freight/calculator" element={<RateCalculator />} />
 
-          {/* Customs */}
-          <Route path="/customs/gd" element={<GDFiling />} />
-          <Route path="/customs/hs-codes" element={<HSCodeLookup />} />
-          <Route path="/customs/duty-calculator" element={<HSCodeLookup />} />
-          <Route path="/customs/examination" element={<GDFiling />} />
-          <Route path="/customs/gate-pass" element={<GDFiling />} />
+                  {/* Documents */}
+                  <Route path="/documents/bl" element={<BillOfLading />} />
+                  <Route path="/documents/bilty" element={<Bilty />} />
+                  <Route path="/documents/awb" element={<AirWaybill />} />
+                  <Route path="/documents/manifest" element={<BillOfLading />} />
 
-          {/* Import */}
-          <Route path="/import/index" element={<GDFiling />} />
-          <Route path="/import/igm" element={<GDFiling />} />
-          <Route path="/import/duty" element={<HSCodeLookup />} />
-          <Route path="/import/release" element={<GDFiling />} />
+                  {/* Customs */}
+                  <Route path="/customs/gd" element={<GDFiling />} />
+                  <Route path="/customs/hs-codes" element={<HSCodeLookup />} />
+                  <Route path="/customs/duty-calculator" element={<HSCodeLookup />} />
+                  <Route path="/customs/examination" element={<GDFiling />} />
+                  <Route path="/customs/gate-pass" element={<GDFiling />} />
 
-          {/* Export */}
+                  {/* Import */}
+                  <Route path="/import/index" element={<ImportIndex />} />
+                  <Route path="/import/igm" element={<IGMManagement />} />
+                  <Route path="/import/duty" element={<DutyAssessment />} />
+                  <Route path="/import/release" element={<ReleaseOrders />} />
 
-          <Route path="/export/filing" element={<ExportFiling />} />
-          <Route path="/export/e-form" element={<EFormManagement />} />
-          <Route path="/export/shipping-bills" element={<ShippingBills />} />
+                  {/* Export */}
 
-          {/* Transshipment */}
-          <Route path="/transshipment/tsr" element={<TSRFiling />} />
-          <Route path="/transshipment/dry-port" element={<DryPortTransfer />} />
-          <Route path="/transshipment/seal" element={<SealVerification />} />
+                  <Route path="/export/filing" element={<ExportFiling />} />
+                  <Route path="/export/e-form" element={<EFormManagement />} />
+                  <Route path="/export/shipping-bills" element={<ShippingBills />} />
 
-          {/* Afghan Transit */}
-          <Route path="/atta/management" element={<ATTAManagement />} />
-          <Route path="/atta/transit-pass" element={<TransitPass />} />
-          <Route path="/atta/border-clearance" element={<BorderClearance />} />
-          <Route path="/atta/bonded-carriers" element={<BondedCarriers />} />
+                  {/* Transshipment */}
+                  <Route path="/transshipment/tsr" element={<TSRFiling />} />
+                  <Route path="/transshipment/dry-port" element={<DryPortTransfer />} />
+                  <Route path="/transshipment/seal" element={<SealVerification />} />
 
-          {/* Local Trade */}
-          <Route path="/local/dispatch" element={<Dispatch />} />
-          <Route path="/local/routes" element={<RoutePlanning />} />
-          <Route path="/local/pod" element={<PODManagement />} />
+                  {/* Afghan Transit */}
+                  <Route path="/atta/management" element={<ATTAManagement />} />
+                  <Route path="/atta/transit-pass" element={<TransitPass />} />
+                  <Route path="/atta/border-clearance" element={<BorderClearance />} />
+                  <Route path="/atta/bonded-carriers" element={<BondedCarriers />} />
 
-          {/* Warehouse */}
-          <Route path="/warehouse/inventory" element={<Inventory />} />
-          <Route path="/warehouse/grn" element={<GRNGIN />} />
-          <Route path="/warehouse/bonded" element={<BondedWarehouse />} />
+                  {/* Local Trade */}
+                  <Route path="/local/dispatch" element={<Dispatch />} />
+                  <Route path="/local/routes" element={<RoutePlanning />} />
+                  <Route path="/local/pod" element={<PODManagement />} />
 
-          {/* Air Cargo */}
-          <Route path="/air-cargo/awb" element={<BillOfLading />} />
-          <Route path="/air-cargo/handling" element={<RoadFreight />} />
-          <Route path="/air-cargo/airlines" element={<PortDirectory />} />
+                  {/* Warehouse */}
+                  <Route path="/warehouse/inventory" element={<Inventory />} />
+                  <Route path="/warehouse/grn" element={<GRNGIN />} />
+                  <Route path="/warehouse/bonded" element={<BondedWarehouse />} />
 
-          {/* Maritime */}
-          <Route path="/maritime/containers" element={<ContainerTracking />} />
-          <Route path="/maritime/vessels" element={<VesselSchedule />} />
-          <Route path="/maritime/ports" element={<PortDirectory />} />
+                  {/* Air Cargo */}
+                  <Route path="/air-cargo/awb" element={<BillOfLading />} />
+                  <Route path="/air-cargo/handling" element={<RoadFreight />} />
+                  <Route path="/air-cargo/airlines" element={<PortDirectory />} />
 
-          {/* Finance */}
-          <Route path="/finance/invoices" element={<Invoices />} />
-          <Route path="/finance/duties" element={<DutyPayments />} />
-          <Route path="/finance/demurrage" element={<Demurrage />} />
-          <Route path="/finance/reports" element={<FinancialReports />} />
+                  {/* Maritime */}
+                  <Route path="/maritime/containers" element={<ContainerTracking />} />
+                  <Route path="/maritime/vessels" element={<VesselSchedule />} />
+                  <Route path="/maritime/ports" element={<PortDirectory />} />
 
-          {/* Compliance */}
-          <Route path="/compliance/documents" element={<DocumentsManager />} />
-          <Route path="/compliance/rules" element={<CustomsRules />} />
-          <Route path="/compliance/audit" element={<AuditTrail />} />
+                  {/* Finance */}
+                  <Route path="/finance/invoices" element={<Invoices />} />
+                  <Route path="/finance/duties" element={<DutyPayments />} />
+                  <Route path="/finance/demurrage" element={<Demurrage />} />
+                  <Route path="/finance/reports" element={<FinancialReports />} />
 
-          {/* Tracking */}
-          <Route path="/tracking/gps" element={<TransitManagement />} />
-          <Route path="/tracking/containers" element={<RoadFreight />} />
-          <Route path="/tracking/milestones" element={<RoadFreight />} />
-          <Route path="/tracking/alerts" element={<RoadFreight />} />
+                  {/* Compliance */}
+                  <Route path="/compliance/documents" element={<DocumentsManager />} />
+                  <Route path="/compliance/rules" element={<CustomsRules />} />
+                  <Route path="/compliance/audit" element={<AuditTrail />} />
 
-          {/* Reports & Settings */}
-          <Route path="/reports" element={<GDFiling />} />
-          <Route path="/settings" element={<RoadFreight />} />
+                  {/* Tracking */}
+                  <Route path="/tracking/gps" element={<TransitManagement />} />
+                  <Route path="/tracking/containers" element={<RoadFreight />} />
+                  <Route path="/tracking/milestones" element={<RoadFreight />} />
+                  <Route path="/tracking/alerts" element={<RoadFreight />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+                  {/* Reports & Settings */}
+                  <Route path="/reports" element={<GDFiling />} />
+                  <Route path="/design-system" element={<DesignSystem />} />
+                  <Route path="/settings" element={<SettingsLayout />} />
+
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </AuthProvider>
 );
 
 export default App;

@@ -1,10 +1,10 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  Plus,
+  Search,
+  Filter,
   Download,
   Truck,
   MapPin,
@@ -17,6 +17,7 @@ import {
   Navigation
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ExportActions from '@/components/common/ExportActions';
 
 const transitShipments = [
   {
@@ -103,8 +104,8 @@ const statusConfig = {
 
 export default function TransitManagement() {
   return (
-    <MainLayout 
-      title="Afghan Transit Trade" 
+    <MainLayout
+      title="Afghan Transit Trade"
       subtitle="ATTA Management - Transit Pass & Border Clearance"
     >
       <div className="space-y-6">
@@ -124,10 +125,17 @@ export default function TransitManagement() {
             </Button>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+            <ExportActions
+              data={transitShipments}
+              fileName="atta_transit_shipments"
+              columnMapping={{
+                id: "ATTA ID",
+                bondNumber: "Bond #",
+                carrier: "Carrier",
+                status: "Status",
+                currentLocation: "Location"
+              }}
+            />
             <Button variant="accent">
               <Plus className="h-4 w-4 mr-2" />
               New Transit

@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import ExportActions from '@/components/common/ExportActions';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  Plus,
+  Search,
+  Filter,
   Download,
   FileText,
   CheckCircle,
@@ -94,7 +95,8 @@ export default function ImportIndex() {
     setDialogOpen(true);
   };
 
-  const handleView = (imp: ImportShipment) => {
+  const handleView = (imp: ImportShipment, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setSelectedImport(imp);
     setViewDialogOpen(true);
   };
@@ -108,25 +110,13 @@ export default function ImportIndex() {
     toast.success('Reference copied to clipboard');
   };
 
-  const handleExport = () => {
-    const csv = imports.map(imp => 
-      `${imp.indexNumber},${imp.igmNumber},${imp.blNumber},${imp.importerName},${imp.hsCode},${imp.invoiceValue},${imp.totalDutyTax},${imp.status}`
-    ).join('\n');
-    const header = 'Index No,IGM No,BL Number,Importer,HS Code,Value,Duty,Status\n';
-    const blob = new Blob([header + csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `imports-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click();
-    toast.success('Exported to CSV');
-  };
+
 
   const terminals = ['PICT', 'KICT', 'QICT', 'SAPT', 'KPT'];
 
   return (
-    <MainLayout 
-      title="Import Management" 
+    <MainLayout
+      title="Import Management"
       subtitle="Track and manage all import shipments"
     >
       <div className="space-y-6">
@@ -173,10 +163,19 @@ export default function ImportIndex() {
             </Select>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+            <ExportActions
+              data={imports}
+              fileName="import_shipments"
+              columnMapping={{
+                indexNumber: "Index No",
+                igmNumber: "IGM No",
+                blNumber: "BL No",
+                importerName: "Importer",
+                hsCode: "HS Code",
+                invoiceValue: "Value (USD)",
+                status: "Status"
+              }}
+            />
             <Button variant="accent" onClick={() => { setSelectedImport(null); setDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-2" />
               New Import
@@ -244,10 +243,10 @@ export default function ImportIndex() {
             {imports.map((imp) => {
               const status = statusConfig[imp.status];
               const StatusIcon = status.icon;
-              
+
               return (
-                <div 
-                  key={imp.id} 
+                <div
+                  key={imp.id}
                   className="rounded-xl border border-border bg-card p-4 space-y-3"
                   onClick={() => handleView(imp)}
                 >
@@ -261,19 +260,19 @@ export default function ImportIndex() {
                       {status.label}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-mono text-muted-foreground">{imp.blNumber}</span>
                     {imp.igmNumber && (
                       <Badge variant="outline" className="text-xs font-mono">{imp.igmNumber}</Badge>
                     )}
                   </div>
-                  
+
                   <div>
                     <p className="text-sm font-medium">{imp.importerName}</p>
                     <p className="text-xs text-muted-foreground">{imp.vesselName} • {imp.terminal}</p>
                   </div>
-                  
+
                   <div className="flex justify-between pt-2 border-t border-border">
                     <div>
                       <p className="text-xs text-muted-foreground">Value</p>
@@ -284,7 +283,7 @@ export default function ImportIndex() {
                       <p className="font-mono text-sm font-medium text-accent">{formatCurrency(imp.totalDutyTax)}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2 pt-2">
                     <Button variant="outline" size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); handleEdit(imp); }}>
                       <Edit className="h-4 w-4 mr-1" />
@@ -323,7 +322,7 @@ export default function ImportIndex() {
                   {imports.map((imp) => {
                     const status = statusConfig[imp.status];
                     const StatusIcon = status.icon;
-                    
+
                     return (
                       <tr key={imp.id}>
                         <td>
@@ -369,7 +368,7 @@ export default function ImportIndex() {
                         </td>
                         <td>
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleView(imp)}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => handleView(imp, e)}>
                               <Eye className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(imp)}>
@@ -382,18 +381,18 @@ export default function ImportIndex() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleCopyRef(imp.blNumber)}>
+                                <DropdownMenuItem onSelect={() => handleCopyRef(imp.blNumber)}>
                                   <Copy className="h-4 w-4 mr-2" />
                                   Copy BL Number
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleView(imp)}>
+                                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleView(imp); }}>
                                   <Eye className="h-4 w-4 mr-2" />
                                   View Details
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="text-destructive"
-                                  onClick={() => handleDelete(imp)}
+                                  onSelect={(e) => { e.preventDefault(); handleDelete(imp); }}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
                                   Delete

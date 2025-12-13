@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import ExportActions from '@/components/common/ExportActions';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Search, 
-  Filter, 
+import {
+  Search,
+  Filter,
   Download,
   Ship,
   Eye,
@@ -44,7 +45,7 @@ export default function IGMManagement() {
   const [selectedImport, setSelectedImport] = useState<ImportShipment | null>(null);
 
   // Filter to show only IGM-related shipments
-  const igmImports = imports.filter(imp => 
+  const igmImports = imports.filter(imp =>
     ['pending', 'igm_filed', 'gd_filed'].includes(imp.status)
   );
 
@@ -62,27 +63,15 @@ export default function IGMManagement() {
     updateStatus(imp.id, 'igm_filed');
   };
 
-  const handleExport = () => {
-    const csv = igmImports.map(imp => 
-      `${imp.igmNumber || 'Pending'},${imp.blNumber},${imp.vesselName},${imp.voyageNumber},${imp.importerName},${imp.status}`
-    ).join('\n');
-    const header = 'IGM No,BL Number,Vessel,Voyage,Importer,Status\n';
-    const blob = new Blob([header + csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `igm-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click();
-    toast.success('Exported to CSV');
-  };
+
 
   const pendingCount = igmImports.filter(i => i.status === 'pending').length;
   const filedCount = igmImports.filter(i => i.status === 'igm_filed').length;
   const gdFiledCount = igmImports.filter(i => i.status === 'gd_filed').length;
 
   return (
-    <MainLayout 
-      title="IGM Management" 
+    <MainLayout
+      title="IGM Management"
       subtitle="Import General Manifest filing and tracking"
     >
       <div className="space-y-6">
@@ -111,10 +100,18 @@ export default function IGMManagement() {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
+          <ExportActions
+            data={igmImports}
+            fileName="igm_filing_status"
+            columnMapping={{
+              igmNumber: "IGM No",
+              blNumber: "BL No",
+              vesselName: "Vessel",
+              voyageNumber: "Voyage",
+              importerName: "Importer",
+              status: "Status"
+            }}
+          />
         </div>
 
         {/* Stats */}
@@ -146,8 +143,8 @@ export default function IGMManagement() {
         {isMobile ? (
           <div className="space-y-4">
             {igmImports.map((imp) => (
-              <div 
-                key={imp.id} 
+              <div
+                key={imp.id}
                 className="rounded-xl border border-border bg-card p-4 space-y-3"
                 onClick={() => handleView(imp)}
               >
@@ -164,37 +161,37 @@ export default function IGMManagement() {
                     {imp.status === 'pending' ? 'Pending IGM' : imp.status === 'igm_filed' ? 'IGM Filed' : 'GD Filed'}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Ship className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">{imp.vesselName}</span>
                   <span className="text-xs text-muted-foreground">• {imp.voyageNumber}</span>
                 </div>
-                
+
                 <div>
                   <p className="text-xs text-muted-foreground">BL Number</p>
                   <p className="font-mono text-sm">{imp.blNumber}</p>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Container className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">{imp.containerNumbers.length} Container(s)</span>
                 </div>
-                
+
                 <div className="flex gap-2 pt-2">
                   {imp.status === 'pending' && (
-                    <Button 
-                      variant="accent" 
-                      size="sm" 
+                    <Button
+                      variant="accent"
+                      size="sm"
                       className="flex-1"
                       onClick={(e) => { e.stopPropagation(); handleFileIGM(imp); }}
                     >
                       File IGM
                     </Button>
                   )}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className={imp.status !== 'pending' ? 'flex-1' : ''}
                     onClick={(e) => { e.stopPropagation(); handleView(imp); }}
                   >
@@ -261,8 +258,8 @@ export default function IGMManagement() {
                       <td>
                         <div className="flex items-center justify-end gap-2">
                           {imp.status === 'pending' && (
-                            <Button 
-                              variant="accent" 
+                            <Button
+                              variant="accent"
                               size="sm"
                               onClick={() => handleFileIGM(imp)}
                             >

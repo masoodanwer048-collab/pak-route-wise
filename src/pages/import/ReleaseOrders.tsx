@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import ExportActions from '@/components/common/ExportActions';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Search, 
-  Filter, 
+import {
+  Search,
+  Filter,
   Download,
   Eye,
   Copy,
@@ -52,7 +53,7 @@ export default function ReleaseOrders() {
   const [selectedImport, setSelectedImport] = useState<ImportShipment | null>(null);
 
   // Filter to show only release-related shipments
-  const releaseImports = imports.filter(imp => 
+  const releaseImports = imports.filter(imp =>
     ['duty_paid', 'examined', 'released', 'delivered'].includes(imp.status)
   );
 
@@ -74,30 +75,18 @@ export default function ReleaseOrders() {
     updateStatus(imp.id, 'delivered');
   };
 
-  const handleExport = () => {
-    const csv = releaseImports.map(imp => 
-      `${imp.indexNumber},${imp.gdNumber},${imp.blNumber},${imp.importerName},${imp.releaseDate ? format(new Date(imp.releaseDate), 'dd/MM/yyyy') : 'Pending'},${imp.status}`
-    ).join('\n');
-    const header = 'Index No,GD Number,BL Number,Importer,Release Date,Status\n';
-    const blob = new Blob([header + csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `release-orders-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click();
-    toast.success('Exported to CSV');
-  };
+
 
   const terminals = ['PICT', 'KICT', 'QICT', 'SAPT', 'KPT'];
-  
+
   const pendingExamCount = releaseImports.filter(i => i.status === 'duty_paid').length;
   const examinedCount = releaseImports.filter(i => i.status === 'examined').length;
   const releasedCount = releaseImports.filter(i => i.status === 'released').length;
   const deliveredCount = releaseImports.filter(i => i.status === 'delivered').length;
 
   return (
-    <MainLayout 
-      title="Release Orders" 
+    <MainLayout
+      title="Release Orders"
       subtitle="Cargo release and delivery management"
     >
       <div className="space-y-6">
@@ -126,10 +115,18 @@ export default function ReleaseOrders() {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
+          <ExportActions
+            data={releaseImports}
+            fileName="release_orders"
+            columnMapping={{
+              indexNumber: "Index No",
+              gdNumber: "GD Number",
+              blNumber: "BL No",
+              importerName: "Importer",
+              releaseDate: "Release Date",
+              status: "Status"
+            }}
+          />
         </div>
 
         {/* Stats */}
@@ -168,8 +165,8 @@ export default function ReleaseOrders() {
         {isMobile ? (
           <div className="space-y-4">
             {releaseImports.map((imp) => (
-              <div 
-                key={imp.id} 
+              <div
+                key={imp.id}
                 className="rounded-xl border border-border bg-card p-4 space-y-3"
                 onClick={() => handleView(imp)}
               >
@@ -184,27 +181,27 @@ export default function ReleaseOrders() {
                     imp.status === 'released' && 'bg-success/10 text-success',
                     imp.status === 'delivered' && 'bg-success/10 text-success',
                   )}>
-                    {imp.status === 'duty_paid' ? 'Awaiting Exam' : 
-                     imp.status === 'examined' ? 'Ready for Release' :
-                     imp.status === 'released' ? 'Released' : 'Delivered'}
+                    {imp.status === 'duty_paid' ? 'Awaiting Exam' :
+                      imp.status === 'examined' ? 'Ready for Release' :
+                        imp.status === 'released' ? 'Released' : 'Delivered'}
                   </Badge>
                 </div>
-                
+
                 <div>
                   <p className="text-sm font-medium">{imp.importerName}</p>
                   <p className="text-xs text-muted-foreground">{imp.goodsDescription}</p>
                 </div>
-                
+
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{imp.packages} {imp.packageType}</span>
                   <span className="font-mono">{imp.grossWeight.toLocaleString()} KG</span>
                 </div>
-                
+
                 <div className="flex gap-2 pt-2">
                   {imp.status === 'examined' && (
-                    <Button 
-                      variant="accent" 
-                      size="sm" 
+                    <Button
+                      variant="accent"
+                      size="sm"
                       className="flex-1"
                       onClick={(e) => { e.stopPropagation(); handleRelease(imp); }}
                     >
@@ -213,9 +210,9 @@ export default function ReleaseOrders() {
                     </Button>
                   )}
                   {imp.status === 'released' && (
-                    <Button 
-                      variant="accent" 
-                      size="sm" 
+                    <Button
+                      variant="accent"
+                      size="sm"
                       className="flex-1"
                       onClick={(e) => { e.stopPropagation(); handleMarkDelivered(imp); }}
                     >
@@ -223,8 +220,8 @@ export default function ReleaseOrders() {
                       Mark Delivered
                     </Button>
                   )}
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={(e) => { e.stopPropagation(); handleView(imp); }}
                   >
@@ -281,16 +278,16 @@ export default function ReleaseOrders() {
                           imp.status === 'released' && 'bg-success/10 text-success',
                           imp.status === 'delivered' && 'bg-success/10 text-success',
                         )}>
-                          {imp.status === 'duty_paid' ? 'Pending Exam' : 
-                           imp.status === 'examined' ? 'Ready' :
-                           imp.status === 'released' ? 'Released' : 'Delivered'}
+                          {imp.status === 'duty_paid' ? 'Pending Exam' :
+                            imp.status === 'examined' ? 'Ready' :
+                              imp.status === 'released' ? 'Released' : 'Delivered'}
                         </Badge>
                       </td>
                       <td>
                         <div className="flex items-center justify-end gap-2">
                           {imp.status === 'examined' && (
-                            <Button 
-                              variant="accent" 
+                            <Button
+                              variant="accent"
                               size="sm"
                               onClick={() => handleRelease(imp)}
                             >
@@ -298,8 +295,8 @@ export default function ReleaseOrders() {
                             </Button>
                           )}
                           {imp.status === 'released' && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => handleMarkDelivered(imp)}
                             >

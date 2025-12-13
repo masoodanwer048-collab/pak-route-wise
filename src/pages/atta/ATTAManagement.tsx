@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -57,141 +58,143 @@ const ATTAManagement = () => {
     );
 
     return (
-        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">ATTA Management</h1>
-                    <p className="text-muted-foreground">Manage Afghan Transit Trade Agreement shipments.</p>
-                </div>
-                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="flex items-center gap-2">
-                            <Plus className="h-4 w-4" /> New Shipment
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>New ATTA Shipment</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleCreateShipment} className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="gdNumber">GD Number</Label>
-                                <Input id="gdNumber" name="gdNumber" placeholder="AT-..." required />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="consignee">Consignee (Afghan Importer)</Label>
-                                <Input id="consignee" name="consignee" placeholder="Company Name" required />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="items">Items Description</Label>
-                                <Input id="items" name="items" placeholder="e.g. Foodstuff, Cement" required />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="route">Route / Border Crossing</Label>
-                                <Select name="route" required>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Route" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Torkham">Torkham (Khyber)</SelectItem>
-                                        <SelectItem value="Chaman">Chaman (Balochistan)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <Button type="submit">Create Shipment</Button>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>
-                        <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{shipments.length}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">En Route</CardTitle>
-                        <Truck className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{shipments.filter(s => s.status === "En Route").length}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Crossed Border</CardTitle>
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{shipments.filter(s => s.status === "Crossed Border").length}</div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <Card className="shadow-md">
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle>Shipment Manifest</CardTitle>
-                        <div className="relative w-64">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                            <Input
-                                type="search"
-                                placeholder="Search shipments..."
-                                className="pl-8"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
+        <MainLayout title="ATTA Management" subtitle="Manage Afghan Transit Trade Agreement shipments.">
+            <div className="space-y-6 animate-slide-up">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">ATTA Management</h1>
+                        <p className="text-muted-foreground">Manage Afghan Transit Trade Agreement shipments.</p>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>GD Number</TableHead>
-                                <TableHead>Consignee</TableHead>
-                                <TableHead>Items</TableHead>
-                                <TableHead>Route</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredShipments.map((shipment) => (
-                                <TableRow key={shipment.id}>
-                                    <TableCell className="font-medium">{shipment.gdNumber}</TableCell>
-                                    <TableCell>{shipment.consignee}</TableCell>
-                                    <TableCell>{shipment.items}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="h-3 w-3 text-muted-foreground" />
-                                            {shipment.route}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={
-                                            shipment.status === "Crossed Border" ? "default" :
-                                                shipment.status === "En Route" ? "secondary" : "outline"
-                                        } className={shipment.status === "Crossed Border" ? "bg-green-600 hover:bg-green-700" : ""}>
-                                            {shipment.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm">Details</Button>
-                                    </TableCell>
+                    <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="flex items-center gap-2">
+                                <Plus className="h-4 w-4" /> New Shipment
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>New ATTA Shipment</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateShipment} className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="gdNumber">GD Number</Label>
+                                    <Input id="gdNumber" name="gdNumber" placeholder="AT-..." required />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="consignee">Consignee (Afghan Importer)</Label>
+                                    <Input id="consignee" name="consignee" placeholder="Company Name" required />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="items">Items Description</Label>
+                                    <Input id="items" name="items" placeholder="e.g. Foodstuff, Cement" required />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="route">Route / Border Crossing</Label>
+                                    <Select name="route" required>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Route" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Torkham">Torkham (Khyber)</SelectItem>
+                                            <SelectItem value="Chaman">Chaman (Balochistan)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <Button type="submit">Create Shipment</Button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Shipments</CardTitle>
+                            <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{shipments.length}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">En Route</CardTitle>
+                            <Truck className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{shipments.filter(s => s.status === "En Route").length}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Crossed Border</CardTitle>
+                            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{shipments.filter(s => s.status === "Crossed Border").length}</div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <Card className="shadow-md">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle>Shipment Manifest</CardTitle>
+                            <div className="relative w-64">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                                <Input
+                                    type="search"
+                                    placeholder="Search shipments..."
+                                    className="pl-8"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>GD Number</TableHead>
+                                    <TableHead>Consignee</TableHead>
+                                    <TableHead>Items</TableHead>
+                                    <TableHead>Route</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredShipments.map((shipment) => (
+                                    <TableRow key={shipment.id}>
+                                        <TableCell className="font-medium">{shipment.gdNumber}</TableCell>
+                                        <TableCell>{shipment.consignee}</TableCell>
+                                        <TableCell>{shipment.items}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="h-3 w-3 text-muted-foreground" />
+                                                {shipment.route}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={
+                                                shipment.status === "Crossed Border" ? "default" :
+                                                    shipment.status === "En Route" ? "secondary" : "outline"
+                                            } className={shipment.status === "Crossed Border" ? "bg-green-600 hover:bg-green-700" : ""}>
+                                                {shipment.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="sm">Details</Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
+        </MainLayout>
     );
 };
 

@@ -20,52 +20,75 @@ export interface GoodsDeclaration {
     // Header
     gdNumber: string;
     gdType: GDType;
+    filingDate: string;
     station: string;
     collectorate: string;
-    filingDate: string;
     webocRef: string;
 
-    // Importer/Exporter
+    // Exporter / Consignor
+    exporterName: string;
+    exporterAddress: string;
+
+    // Importer / Consignee
+    importerName: string;
+    importerAddress: string;
     ntn: string;
     strn: string;
-    traderName: string;
-    address: string;
-    phone: string;
-    email: string;
+
+    // Agent
     agentName: string;
-    agentLicense: string;
+    agentAddress: string;
+    chalNo: string; // License No
 
-    // Consignment
+    // Header Details
+    pages: string;
+
+    // Shipment Details
+    countryOfOrigin: string;
+    countryOfConsignment: string;
+    portOfShipment: string;
+    portOfDischarge: string;
+    modeOfTransport: string;
+    identityOfTransport: string; // Vessel/Flight Name & No
     blNumber: string;
-    manifestNo: string;
-    transporter: string; // Shipping Line / Airline
-    vessel: string;
-    portOfLoading: string; // From
-    portOfDischarge: string; // To
-    originCountry: string;
-    exportCountry: string;
+    blDate: string;
+    igmNo: string;
+    igmDate: string;
+    indexNo: string;
 
-    // Goods
+    // Cargo Details
+    grossWeight: number;
+    netWeight: number;
+    packagesNo: number;
+    packagesKind: string;
+    marksAndNumbers: string;
+    locationOfGoods: string;
+
+    // Valuation Details
+    deliveryTerm: string; // FOB, CIF, C&F
+    currencyCode: string;
+    exchangeRate: number;
+    invoiceNo: string;
+    invoiceDate: string;
+    fobValue: number;
+    freight: number;
+    insurance: number;
+    otherCharges: number;
+    landingCharges: number;
+    totalDeclaredValue: number;
+
+    // Items
     items: GDItem[];
 
-    // Summary Taxes
+    // Totals
     totalCustomsDuty: number;
     totalSalesTax: number;
     totalRegulatoryDuty: number;
     totalTaxes: number;
 
-    // Legal
-    policyRef: string;
-    sroNo: string;
-
-    // Assessment
-    examinerRemarks: string;
+    // Assessment & Legal
     status: "Pending" | "Assessed" | "Cleared" | "Examination";
-
-    // Payment
-    challanNo: string;
-    bank: string;
-    paymentStatus: "Paid" | "Unpaid";
+    examinerRemarks: string;
 
     // Declaration
     declarantName: string;
@@ -79,22 +102,52 @@ export const initialGD: GoodsDeclaration = {
     collectorate: "MCC Appraisement East",
     filingDate: new Date().toISOString().split('T')[0],
     webocRef: "WB-998877",
+
+    exporterName: "Sunshine Solar Inc.",
+    exporterAddress: "123 Solar Way, Shanghai, China",
+
+    importerName: "Global Trade Links (Pvt) Ltd",
+    importerAddress: "Plot 44, Industrial Area, Karachi",
     ntn: "1234567-8",
     strn: "11-00-1111-000-11",
-    traderName: "Global Trade Links (Pvt) Ltd",
-    address: "Plot 44, Industrial Area, Karachi",
-    phone: "021-33334444",
-    email: "info@globaltrade.com",
+
     agentName: "Fast Track Clearing Agency",
-    agentLicense: "CHAL-2010",
-    blNumber: "MSC-12345678",
-    manifestNo: "IGM-2023-445",
-    transporter: "MSC",
-    vessel: "MSC AL GHEZA V.22",
-    portOfLoading: "Jebel Ali, UAE",
+    agentAddress: "Office 202, Business Plaza, Karachi",
+    chalNo: "CHAL-2010",
+
+    pages: "1 of 2",
+
+    countryOfOrigin: "China",
+    countryOfConsignment: "China",
+    portOfShipment: "Jebel Ali, UAE",
     portOfDischarge: "Port Qasim, PK",
-    originCountry: "China",
-    exportCountry: "UAE",
+    modeOfTransport: "Sea",
+    identityOfTransport: "MSC AL GHEZA V.22",
+    blNumber: "MSC-12345678",
+    blDate: "2023-10-01",
+    igmNo: "IGM-2023-445",
+    igmDate: "2023-10-15",
+    indexNo: "112",
+
+    grossWeight: 1200,
+    netWeight: 1150,
+    packagesNo: 20,
+    packagesKind: "Pallets",
+    marksAndNumbers: "GTL-001/20",
+    locationOfGoods: "Shed 4, PQ",
+
+    deliveryTerm: "CIF",
+    currencyCode: "USD",
+    exchangeRate: 285.50,
+    invoiceNo: "INV-2023-001",
+    invoiceDate: "2023-09-25",
+    fobValue: 50000,
+    freight: 2500,
+    insurance: 150,
+    otherCharges: 0,
+    landingCharges: 0,
+    totalDeclaredValue: 15000000,
+
     items: [
         {
             itemNo: 1,
@@ -112,17 +165,15 @@ export const initialGD: GoodsDeclaration = {
             totalDuty: 4408000
         }
     ],
+
     totalCustomsDuty: 1672000,
     totalSalesTax: 2736000,
     totalRegulatoryDuty: 0,
     totalTaxes: 4408000,
-    policyRef: "IPO-2022 Para 5(A)",
-    sroNo: "SRO 212(I)/2009",
-    examinerRemarks: "Documents verified. Goods match invoice description.",
+
     status: "Assessed",
-    challanNo: "CPR-99887766",
-    bank: "National Bank of Pakistan",
-    paymentStatus: "Unpaid",
+    examinerRemarks: "Documents verified. Goods match invoice description.",
+
     declarantName: "Ahmed Ali",
     cnic: "42101-1234567-8"
 };

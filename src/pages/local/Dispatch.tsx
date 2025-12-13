@@ -11,6 +11,7 @@ import { Search, Plus, Truck, Package, Clock, FileText, CloudDownload, Mail } fr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BiltyTemplate from "@/components/documents/BiltyTemplate";
 import ActionsMenu from "@/components/common/ActionsMenu";
+import ExportActions from "@/components/common/ExportActions";
 
 interface DispatchRecord {
     id: string;
@@ -77,50 +78,60 @@ const Dispatch = () => {
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Local Dispatch</h1>
                     <p className="text-muted-foreground">Manage local fleet dispatch and transportation schedules.</p>
                 </div>
-                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="flex items-center gap-2">
-                            <Plus className="h-4 w-4" /> Create Dispatch
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Schedule New Dispatch</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleCreateDispatch} className="grid gap-4 py-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="vehicle">Vehicle Number</Label>
-                                    <Input id="vehicle" name="vehicle" placeholder="e.g. LES-1234" required />
+                <div className="flex items-center gap-3">
+                    <ExportActions
+                        data={dispatches}
+                        fileName="dispatch_records"
+                        columnMapping={{
+                            dispatchId: "Dispatch ID",
+                            loadType: "Cargo Type"
+                        }}
+                    />
+                    <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="flex items-center gap-2">
+                                <Plus className="h-4 w-4" /> Create Dispatch
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Schedule New Dispatch</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateDispatch} className="grid gap-4 py-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="vehicle">Vehicle Number</Label>
+                                        <Input id="vehicle" name="vehicle" placeholder="e.g. LES-1234" required />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="driver">Driver Name</Label>
+                                        <Input id="driver" name="driver" placeholder="Driver Name" required />
+                                    </div>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="driver">Driver Name</Label>
-                                    <Input id="driver" name="driver" placeholder="Driver Name" required />
+                                    <Label htmlFor="destination">Destination</Label>
+                                    <Input id="destination" name="destination" placeholder="Warehouse / Client Location" required />
                                 </div>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="destination">Destination</Label>
-                                <Input id="destination" name="destination" placeholder="Warehouse / Client Location" required />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="loadType">Load Type</Label>
-                                <Select name="loadType" required>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Load Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="FMCG">FMCG</SelectItem>
-                                        <SelectItem value="Electronics">Electronics</SelectItem>
-                                        <SelectItem value="Textiles">Textiles</SelectItem>
-                                        <SelectItem value="Perishables">Perishables</SelectItem>
-                                        <SelectItem value="General Cargo">General Cargo</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <Button type="submit">Schedule Dispatch</Button>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="loadType">Load Type</Label>
+                                    <Select name="loadType" required>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Load Type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="FMCG">FMCG</SelectItem>
+                                            <SelectItem value="Electronics">Electronics</SelectItem>
+                                            <SelectItem value="Textiles">Textiles</SelectItem>
+                                            <SelectItem value="Perishables">Perishables</SelectItem>
+                                            <SelectItem value="General Cargo">General Cargo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <Button type="submit">Schedule Dispatch</Button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -261,7 +272,7 @@ const Dispatch = () => {
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 };
 

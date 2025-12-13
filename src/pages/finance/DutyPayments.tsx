@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ExportActions from "@/components/common/ExportActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -112,9 +113,21 @@ const DutyPayments = () => {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle>PSID Registry</CardTitle>
-                        <div className="relative w-64">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                            <Input type="search" placeholder="Search PSID..." className="pl-8" />
+                        <div className="flex gap-2">
+                            <div className="relative w-64">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                                <Input type="search" placeholder="Search PSID..." className="pl-8" />
+                            </div>
+                            <ExportActions
+                                data={duties}
+                                fileName="duty_payments"
+                                columnMapping={{
+                                    psid: "PSID",
+                                    gdRef: "GD Ref",
+                                    amount: "Amount (PKR)",
+                                    head: "Duty Head"
+                                }}
+                            />
                         </div>
                     </div>
                 </CardHeader>

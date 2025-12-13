@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ExportActions from "@/components/common/ExportActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -101,9 +102,22 @@ const Demurrage = () => {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle>Demurrage Tracking</CardTitle>
-                        <div className="relative w-64">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                            <Input type="search" placeholder="Search container..." className="pl-8" />
+                        <div className="flex gap-2">
+                            <div className="relative w-64">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                                <Input type="search" placeholder="Search container..." className="pl-8" />
+                            </div>
+                            <ExportActions
+                                data={records}
+                                fileName="demurrage_report"
+                                columnMapping={{
+                                    containerNo: "Container No",
+                                    vessel: "Vessel",
+                                    freeDays: "Free Days",
+                                    daysOverdue: "Overdue Days",
+                                    totalCharge: "Total Charge ($)"
+                                }}
+                            />
                         </div>
                     </div>
                 </CardHeader>

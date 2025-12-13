@@ -1,4 +1,5 @@
 import React from "react";
+import ExportActions from "@/components/common/ExportActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -61,8 +62,20 @@ const AuditTrail = () => {
             </div>
 
             <Card className="shadow-md">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Activity Log</CardTitle>
+                    <ExportActions
+                        data={auditLogs}
+                        fileName="system_audit_trail"
+                        columnMapping={{
+                            timestamp: "Timestamp",
+                            user: "User",
+                            role: "Role",
+                            action: "Action",
+                            target: "Target",
+                            status: "Status"
+                        }}
+                    />
                 </CardHeader>
                 <CardContent>
                     <Table>

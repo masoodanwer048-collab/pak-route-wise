@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ExportActions from "@/components/common/ExportActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,6 +106,20 @@ const EFormManagement = () => {
                         />
                     </div>
                 </CardHeader>
+                <div className="px-6 pb-2 flex justify-end">
+                    <ExportActions
+                        data={filteredForms}
+                        fileName="e_forms"
+                        columnMapping={{
+                            formNumber: "Form No",
+                            exporter: "Exporter",
+                            bank: "Bank",
+                            amount: "Amount",
+                            status: "Status",
+                            date: "Date"
+                        }}
+                    />
+                </div>
                 <CardContent>
                     <div className="rounded-md border">
                         <Table>

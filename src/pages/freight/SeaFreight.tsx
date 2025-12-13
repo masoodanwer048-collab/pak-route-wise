@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Download, Ship } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useFreightShipments, FreightShipment } from '@/hooks/useFreightShipments';
 import { FreightStats } from '@/components/freight/FreightStats';
 import { FreightTable } from '@/components/freight/FreightTable';
@@ -10,6 +10,7 @@ import { FreightFilters } from '@/components/freight/FreightFilters';
 import { ShipmentDialog } from '@/components/freight/ShipmentDialog';
 import { ShipmentViewDialog } from '@/components/freight/ShipmentViewDialog';
 import { toast } from 'sonner';
+import ExportActions from "@/components/common/ExportActions";
 
 export default function SeaFreight() {
   const {
@@ -42,23 +43,6 @@ export default function SeaFreight() {
     }
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['Reference', 'Origin', 'Destination', 'Carrier', 'Vessel', 'Weight', 'Containers', 'Status', 'ETA'].join(','),
-      ...shipments.map((s) =>
-        [s.reference, s.origin, s.destination, s.carrier, s.vehicle, s.weight, s.containers, s.status, s.eta].join(',')
-      ),
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sea-freight-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    toast.success('Export completed');
-  };
-
   return (
     <MainLayout title="Sea Freight" subtitle="Manage ocean shipping and container operations">
       <div className="space-y-6">
@@ -83,10 +67,15 @@ export default function SeaFreight() {
             />
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
+            <ExportActions
+              data={shipments}
+              fileName="sea_freight_shipments"
+              columnMapping={{
+                reference: "Ref ID",
+                vehicle: "Vessel Name",
+                eta: "Estimated Arrival",
+              }}
+            />
             <Button variant="accent" onClick={() => setIsCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">New Shipment</span>

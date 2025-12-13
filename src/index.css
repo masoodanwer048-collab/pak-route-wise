@@ -6,107 +6,113 @@
 
 @layer base {
   :root {
-    /* Enterprise Navy Theme */
-    --background: 222 47% 98%;
-    --foreground: 222 47% 11%;
+    /* 
+      Kohesar Logistics Brand System 
+      Primary Brand Color: Cyan/Teal (Approx #06b6d4) -> HSL 189 94% 43%
+      Secondary Brand Color: Dark Slate / Gunmetal -> HSL 215 28% 17%
+    */
 
+    /* Base Colors - HIGH CONTRAST */
+    --background: 210 40% 98%;
+    --foreground: 0 0% 0%;
+    /* Pure Black for crisp text */
+
+    /* Card & Popover */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
+    --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 222 47% 20%;
-    --primary-foreground: 210 40% 98%;
+    /* Brand Primary - Kohesar Cyan */
+    --primary: 189 94% 43%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 25% 93%;
-    --secondary-foreground: 222 47% 20%;
+    /* Brand Secondary */
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 25% 95%;
-    --muted-foreground: 215 16% 47%;
+    /* Muted / Neutral - Darker for visibility */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 25% 35%;
+    /* Much darker gray for readability */
 
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent */
+    --accent: 189 94% 95%;
+    --accent-foreground: 189 94% 30%;
 
-    --destructive: 0 84% 60%;
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 25% 90%;
-    --input: 215 25% 90%;
-    --ring: 222 47% 20%;
+    /* Borders & Inputs */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 189 94% 43%;
 
     --radius: 0.5rem;
 
-    /* Custom Logistics Colors */
-    --success: 142 76% 36%;
+    /* Semantic Colors */
+    --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-    --info: 199 89% 48%;
+    --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
     --pending: 262 83% 58%;
     --pending-foreground: 0 0% 100%;
 
+    /* Sidebar Theme - Dark Professional */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 189 94% 43%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 189 94% 43%;
+
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(222 47% 20%) 0%, hsl(222 47% 35%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(199 89% 38%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(142 76% 28%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(215 25% 98%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(189 94% 43%) 0%, hsl(190 100% 35%) 100%);
+    --gradient-dark: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(222 47% 18%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 40% 99%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1), 0 2px 4px -2px hsl(222 47% 11% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1), 0 4px 6px -4px hsl(222 47% 11% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.1), 0 8px 10px -6px hsl(222 47% 11% / 0.1);
-    --shadow-glow: 0 0 20px hsl(199 89% 48% / 0.3);
-
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 199 89% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 18%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 18%;
-    --sidebar-ring: 199 89% 48%;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 15px hsl(189 94% 43% / 0.4);
   }
 
   .dark {
     --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    --foreground: 0 0% 100%;
+    /* Pure White */
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
+    --card: 222 47% 10%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 0 0% 100%;
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
+    --primary: 189 94% 43%;
+    --primary-foreground: 0 0% 100%;
 
-    --primary: 199 89% 48%;
-    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 15%;
-    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 85%;
+    /* Much brighter gray */
 
-    --muted: 222 47% 15%;
-    --muted-foreground: 215 20% 65%;
+    --accent: 189 94% 15%;
+    --accent-foreground: 0 0% 100%;
 
-    --accent: 199 89% 48%;
-    --accent-foreground: 222 47% 11%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 222 47% 18%;
-    --input: 222 47% 18%;
-    --ring: 199 89% 48%;
-
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 199 89% 48%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 47% 12%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 15%;
-    --sidebar-ring: 199 89% 48%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 189 94% 43%;
   }
 }
 
@@ -117,124 +123,104 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+  /* Typography System */
+  h1 {
+    @apply text-3xl font-bold tracking-tight lg:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl font-bold tracking-tight;
+  }
+
+  h3 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  h4 {
+    @apply text-lg font-semibold tracking-tight;
+  }
+
+  p {
+    @apply leading-7 [&:not(:first-child)]:mt-6;
+  }
+
+  small {
+    @apply text-sm font-medium leading-none;
   }
 }
 
 @layer components {
-  .glass-card {
-    @apply bg-card/80 backdrop-blur-md border border-border/50 shadow-lg;
-  }
 
+  /* Cards */
   .stat-card {
-    @apply relative overflow-hidden rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5;
-    background: var(--gradient-card);
+    @apply relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 p-6;
   }
 
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-lg border border-white/20 shadow-xl;
+  }
+
+  /* Navigation */
   .nav-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 select-none cursor-pointer;
+  }
+
+  .nav-item:hover {
+    @apply bg-sidebar-accent text-sidebar-foreground;
   }
 
   .nav-item-active {
-    @apply bg-sidebar-accent text-sidebar-primary;
+    @apply bg-primary text-primary-foreground shadow-glow;
   }
 
-  .status-badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  /* Tables */
+  .data-table-container {
+    @apply rounded-md border shadow-sm bg-card;
   }
 
   .data-table {
-    @apply w-full text-sm;
+    @apply w-full caption-bottom text-sm;
+  }
+
+  .data-table thead tr {
+    @apply border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted;
   }
 
   .data-table th {
-    @apply px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider text-xs bg-muted/50;
+    @apply h-12 px-4 text-left align-middle font-medium text-muted-foreground bg-muted/30;
   }
 
   .data-table td {
-    @apply px-4 py-3 border-b border-border/50;
+    @apply p-4 align-middle [&:has([role=checkbox])]:pr-0 border-b border-border/50;
   }
 
-  .data-table tr:hover td {
-    @apply bg-muted/30;
+  .data-table tr:last-child td {
+    @apply border-b-0;
   }
 
-  .module-header {
-    @apply flex items-center justify-between pb-6 border-b border-border mb-6;
+  .data-table tr:hover {
+    @apply bg-muted/40;
   }
 
-  .input-group {
-    @apply space-y-2;
-  }
-
-  .input-label {
-    @apply text-sm font-medium text-foreground;
-  }
-
-  .metric-value {
-    @apply text-3xl font-bold tracking-tight;
-  }
-
-  .metric-label {
-    @apply text-sm text-muted-foreground;
-  }
-
-  .code-text {
-    @apply font-mono text-sm bg-muted px-1.5 py-0.5 rounded;
+  /* Utils */
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
 
 @layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.5s ease-out forwards;
-  }
-
-  .animate-slide-in-left {
-    animation: slideInLeft 0.3s ease-out forwards;
-  }
-
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
   @keyframes slideUp {
-    from { 
+    from {
       opacity: 0;
       transform: translateY(20px);
     }
-    to { 
+
+    to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-
-  @keyframes slideInLeft {
-    from { 
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to { 
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .stagger-1 { animation-delay: 0.1s; }
-  .stagger-2 { animation-delay: 0.2s; }
-  .stagger-3 { animation-delay: 0.3s; }
-  .stagger-4 { animation-delay: 0.4s; }
-  .stagger-5 { animation-delay: 0.5s; }
 }

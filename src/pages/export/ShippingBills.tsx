@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ExportActions from "@/components/common/ExportActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -56,34 +57,7 @@ const ShippingBills = () => {
         });
     };
 
-    const handleExportList = () => {
-        const headers = ["Bill Number", "Vessel", "Port of Loading", "Port of Discharge", "Status", "Date"];
-        const csvContent = [
-            headers.join(","),
-            ...bills.map(bill => [
-                bill.billNumber,
-                bill.vessel,
-                bill.portOfLoading,
-                bill.portOfDischarge,
-                bill.status,
-                bill.date
-            ].join(","))
-        ].join("\n");
 
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `shipping_bills_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        toast({
-            title: "List Exported",
-            description: "Shipping bills have been downloaded as CSV.",
-        });
-    };
 
     const filteredBills = bills.filter(bill =>
         bill.billNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,9 +72,18 @@ const ShippingBills = () => {
                     <p className="text-muted-foreground">Monitor and manage your export shipping bills.</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="flex items-center gap-2" onClick={handleExportList}>
-                        <Download className="h-4 w-4" /> Export List
-                    </Button>
+                    <ExportActions
+                        data={bills}
+                        fileName="shipping_bills"
+                        columnMapping={{
+                            billNumber: "Bill Number",
+                            vessel: "Vessel",
+                            portOfLoading: "Loading Port",
+                            portOfDischarge: "Discharge Port",
+                            status: "Status",
+                            date: "Date"
+                        }}
+                    />
 
                     <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                         <DialogTrigger asChild>

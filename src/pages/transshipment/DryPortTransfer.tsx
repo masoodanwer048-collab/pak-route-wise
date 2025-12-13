@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, MapPin, Truck, Plus, CheckCircle2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import ExportActions from "@/components/common/ExportActions";
 
 interface Transfer {
     id: string;
@@ -73,43 +74,53 @@ const DryPortTransfer = () => {
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Dry Port Transfer</h1>
                     <p className="text-muted-foreground">Manage container moves from sea ports to inland dry ports.</p>
                 </div>
-                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="flex items-center gap-2">
-                            <Plus className="h-4 w-4" /> New Transfer
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Initiate Dry Port Transfer</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleCreateTransfer} className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="container">Container Number</Label>
-                                <Input id="container" name="container" placeholder="e.g. ABCD-1234567" required />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="dryPort">Destination Dry Port</Label>
-                                <Select name="dryPort" required>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Dry Port" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Lahore Dry Port">Lahore Dry Port</SelectItem>
-                                        <SelectItem value="Faisalabad Dry Port">Faisalabad Dry Port</SelectItem>
-                                        <SelectItem value="Sialkot Dry Port">Sialkot Dry Port</SelectItem>
-                                        <SelectItem value="Multan Dry Port">Multan Dry Port</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="eta">Estimated Arrival (ETA)</Label>
-                                <Input id="eta" name="eta" type="date" required />
-                            </div>
-                            <Button type="submit">Create Transfer</Button>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                <div className="flex items-center gap-3">
+                    <ExportActions
+                        data={filteredTransfers}
+                        fileName="dry_port_transfers"
+                        columnMapping={{
+                            reference: "Ref #",
+                            dryPort: "Destination"
+                        }}
+                    />
+                    <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="flex items-center gap-2">
+                                <Plus className="h-4 w-4" /> New Transfer
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Initiate Dry Port Transfer</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateTransfer} className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="container">Container Number</Label>
+                                    <Input id="container" name="container" placeholder="e.g. ABCD-1234567" required />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="dryPort">Destination Dry Port</Label>
+                                    <Select name="dryPort" required>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Dry Port" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Lahore Dry Port">Lahore Dry Port</SelectItem>
+                                            <SelectItem value="Faisalabad Dry Port">Faisalabad Dry Port</SelectItem>
+                                            <SelectItem value="Sialkot Dry Port">Sialkot Dry Port</SelectItem>
+                                            <SelectItem value="Multan Dry Port">Multan Dry Port</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="eta">Estimated Arrival (ETA)</Label>
+                                    <Input id="eta" name="eta" type="date" required />
+                                </div>
+                                <Button type="submit">Create Transfer</Button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
