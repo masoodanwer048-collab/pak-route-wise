@@ -40,6 +40,9 @@ import Invoices from "./pages/finance/Invoices";
 import DutyPayments from "./pages/finance/DutyPayments";
 import Demurrage from "./pages/finance/Demurrage";
 import FinancialReports from "./pages/finance/FinancialReports";
+import DocumentsManager from "./pages/compliance/DocumentsManager";
+import CustomsRules from "./pages/compliance/CustomsRules";
+import AuditTrail from "./pages/compliance/AuditTrail";
 
 const queryClient = new QueryClient();
 
@@ -122,9 +125,9 @@ const App = () => (
           <Route path="/finance/reports" element={<FinancialReports />} />
 
           {/* Compliance */}
-          <Route path="/compliance/documents" element={<BillOfLading />} />
-          <Route path="/compliance/rules" element={<HSCodeLookup />} />
-          <Route path="/compliance/audit" element={<GDFiling />} />
+          <Route path="/compliance/documents" element={<DocumentsManager />} />
+          <Route path="/compliance/rules" element={<CustomsRules />} />
+          <Route path="/compliance/audit" element={<AuditTrail />} />
 
           {/* Tracking */}
           <Route path="/tracking/gps" element={<TransitManagement />} />
