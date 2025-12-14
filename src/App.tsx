@@ -6,8 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 
-// ... imports
-
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
   const location = useLocation();
@@ -18,6 +16,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
+
 import Index from "./pages/Index";
 import RoadFreight from "./pages/freight/RoadFreight";
 import SeaFreight from "./pages/freight/SeaFreight";
@@ -31,6 +30,7 @@ import ImportIndex from "./pages/import/ImportIndex";
 import IGMManagement from "./pages/import/IGMManagement";
 import ReleaseOrders from "./pages/import/ReleaseOrders";
 import BillOfLading from "./pages/documents/BillOfLading";
+import PackingList from "./pages/documents/PackingList";
 import TransitManagement from "./pages/atta/TransitManagement";
 import DesignSystem from "./pages/DesignSystem";
 
@@ -91,6 +91,7 @@ const App = () => (
 
                   {/* Documents */}
                   <Route path="/documents/bl" element={<BillOfLading />} />
+                  <Route path="/documents/packing-list" element={<PackingList />} />
                   <Route path="/documents/bilty" element={<Bilty />} />
                   <Route path="/documents/awb" element={<AirWaybill />} />
                   <Route path="/documents/manifest" element={<BillOfLading />} />

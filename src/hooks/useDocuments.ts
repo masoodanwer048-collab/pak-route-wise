@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 
-export type DocumentType = 'bl' | 'awb' | 'bilty' | 'manifest';
+export type DocumentType = 'bl' | 'awb' | 'bilty' | 'manifest' | 'packing_list';
 export type DocumentStatus = 'draft' | 'pending' | 'original' | 'telex' | 'released' | 'hold' | 'cancelled';
 
 export interface ShippingDocument {
@@ -20,11 +20,15 @@ export interface ShippingDocument {
   // Parties
   shipper: string;
   consignee: string;
-  notifyParty?: string;
+  notifyParties: string[]; // Changed from single string to array
   // Cargo
+  cargoType: 'FCL' | 'LCL'; // Added
   containers: string[];
+  marksAndNumbers?: string; // Added for LCL
+  hsCode?: string; // Added
   weight: string;
   volume: string;
+  dimensions?: { length: number; width: number; height: number; unit: 'cm' | 'in' }; // Added
   packages: number;
   description: string;
   // Dates
@@ -39,7 +43,7 @@ export interface ShippingDocument {
 
 const generateMockDocuments = (type: DocumentType, count: number): ShippingDocument[] => {
   const statuses: DocumentStatus[] = ['draft', 'pending', 'original', 'telex', 'released', 'hold'];
-  
+
   const typeConfig = {
     bl: {
       prefix: 'MAEU',
@@ -73,11 +77,19 @@ const generateMockDocuments = (type: DocumentType, count: number): ShippingDocum
       origins: ['Multiple Origins'],
       destinations: ['Karachi Port', 'Port Qasim'],
     },
+    packing_list: {
+      prefix: 'PL',
+      carriers: ['N/A'],
+      vessels: ['ATHENS BRIDGE V.147S', 'CMA CGM RABELAIS'],
+      voyages: ['V.147S', '065E'],
+      origins: ['Nagoya Port, Japan', 'Shanghai, China'],
+      destinations: ['Karachi Port, Pakistan', 'Port Qasim'],
+    },
   };
 
   const config = typeConfig[type];
-  const shippers = ['ABC Trading Co.', 'XYZ Industries', 'Global Exports Pvt', 'Tech Solutions Ltd'];
-  const consignees = ['Import Co. Ltd', 'Pakistan Traders', 'Metro Imports', 'National Enterprises'];
+  const shippers = ['ABC Trading Co.', 'XYZ Industries', 'Global Exports Pvt', 'Toyota Boshoku Corporation'];
+  const consignees = ['Import Co. Ltd', 'Pakistan Traders', 'Thal Boshoku Pakistan (Pvt.) Ltd.'];
 
   return Array.from({ length: count }, (_, i) => {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -86,10 +98,16 @@ const generateMockDocuments = (type: DocumentType, count: number): ShippingDocum
     const etaDate = new Date();
     etaDate.setDate(etaDate.getDate() + Math.floor(Math.random() * 14));
 
-    const containerCount = type === 'awb' ? 0 : Math.floor(Math.random() * 5 + 1);
-    const containers = Array.from({ length: containerCount }, (_, j) => 
-      `${config.prefix.slice(0, 4)}${String(Math.floor(Math.random() * 9999999)).padStart(7, '0')}`
+    const isFCL = Math.random() > 0.3;
+    const containerCount = type === 'awb' || !isFCL ? 0 : Math.floor(Math.random() * 5 + 1);
+    const containers = Array.from({ length: containerCount }, (_, j) =>
+      `${type === 'packing_list' ? 'C/NO.' : config.prefix.slice(0, 4)}${String(Math.floor(Math.random() * 9999999)).padStart(7, '0')}`
     );
+
+    const length = Math.floor(Math.random() * 200 + 50);
+    const width = Math.floor(Math.random() * 100 + 50);
+    const height = Math.floor(Math.random() * 100 + 50);
+    const volume = (length * width * height) / 1000000; // CBM
 
     return {
       id: `${config.prefix}${String(Math.floor(Math.random() * 999999999)).padStart(9, '0')}`,
@@ -101,16 +119,20 @@ const generateMockDocuments = (type: DocumentType, count: number): ShippingDocum
       voyageFlightNo: config.voyages[Math.floor(Math.random() * config.voyages.length)],
       origin: config.origins[Math.floor(Math.random() * config.origins.length)],
       destination: config.destinations[Math.floor(Math.random() * config.destinations.length)],
-      pol: type === 'bl' ? config.origins[Math.floor(Math.random() * config.origins.length)] : undefined,
-      pod: type === 'bl' ? config.destinations[Math.floor(Math.random() * config.destinations.length)] : undefined,
+      pol: (type === 'bl' || type === 'packing_list') ? config.origins[Math.floor(Math.random() * config.origins.length)] : undefined,
+      pod: (type === 'bl' || type === 'packing_list') ? config.destinations[Math.floor(Math.random() * config.destinations.length)] : undefined,
       shipper: shippers[Math.floor(Math.random() * shippers.length)],
       consignee: consignees[Math.floor(Math.random() * consignees.length)],
-      notifyParty: consignees[Math.floor(Math.random() * consignees.length)],
+      notifyParties: [consignees[Math.floor(Math.random() * consignees.length)]],
+      cargoType: isFCL ? 'FCL' : 'LCL',
       containers,
+      marksAndNumbers: !isFCL ? `M/NO: ${Math.floor(Math.random() * 1000)}` : undefined,
+      hsCode: '8543.7090',
       weight: `${Math.floor(Math.random() * 40000 + 5000).toLocaleString()} kg`,
-      volume: `${Math.floor(Math.random() * 100 + 20)} CBM`,
+      volume: `${volume.toFixed(3)} CBM`,
+      dimensions: { length, width, height, unit: 'cm' },
       packages: Math.floor(Math.random() * 500 + 50),
-      description: ['Computer Hardware', 'Textile Fabrics', 'Machinery Parts', 'Consumer Electronics', 'Food Products'][Math.floor(Math.random() * 5)],
+      description: ['Airbag Traceability Control System', 'Auto Parts', 'Machinery Parts', 'Consumer Electronics'][Math.floor(Math.random() * 4)],
       issueDate: issueDate.toISOString().split('T')[0],
       etd: issueDate.toISOString().split('T')[0],
       eta: etaDate.toISOString().split('T')[0],

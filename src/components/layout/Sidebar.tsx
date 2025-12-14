@@ -73,6 +73,7 @@ const navStructure: NavGroup[] = [
         icon: FileText,
         subItems: [
           { name: 'Bill of Lading', path: '/documents/bl' },
+          { name: 'Packing List', path: '/documents/packing-list' },
           { name: 'Bilty / GR', path: '/documents/bilty' },
           { name: 'Air Waybill', path: '/documents/awb' },
           { name: 'Shipping Manifest', path: '/documents/manifest' },

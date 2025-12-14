@@ -302,6 +302,15 @@ export function ShipmentDialog({
             </div>
           </div>
 
+          {/* Documents */}
+          <div className="space-y-2">
+            <Label>Documents (Optional)</Label>
+            <div className="flex items-center gap-2">
+              <Input type="file" multiple className="cursor-pointer" />
+            </div>
+            <p className="text-xs text-muted-foreground">Upload any relevant shipping documents (BL, Packing List, etc.)</p>
+          </div>
+
           {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
