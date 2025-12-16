@@ -10,6 +10,7 @@ import { FreightTable } from '@/components/freight/FreightTable';
 import { FreightFilters } from '@/components/freight/FreightFilters';
 import { ShipmentDialog } from '@/components/freight/ShipmentDialog';
 import { ShipmentViewDialog } from '@/components/freight/ShipmentViewDialog';
+import { ShipmentPrintView } from '@/components/freight/ShipmentPrintView';
 import { toast } from 'sonner';
 
 export default function RoadFreight() {
@@ -28,6 +29,7 @@ export default function RoadFreight() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editShipment, setEditShipment] = useState<FreightShipment | null>(null);
   const [viewShipment, setViewShipment] = useState<FreightShipment | null>(null);
+  const [printShipment, setPrintShipment] = useState<FreightShipment | null>(null);
 
   const origins = useMemo(() => [...new Set(allShipments.map((s) => s.origin))], [allShipments]);
   const destinations = useMemo(() => [...new Set(allShipments.map((s) => s.destination))], [allShipments]);
@@ -96,6 +98,7 @@ export default function RoadFreight() {
           onView={setViewShipment}
           onEdit={setEditShipment}
           onDelete={deleteShipment}
+          onPrint={setPrintShipment}
         />
       </div>
 
@@ -118,6 +121,13 @@ export default function RoadFreight() {
         open={!!viewShipment}
         onOpenChange={(open) => !open && setViewShipment(null)}
         shipment={viewShipment}
+      />
+
+      {/* Print View */}
+      <ShipmentPrintView
+        open={!!printShipment}
+        onOpenChange={(open) => !open && setPrintShipment(null)}
+        shipment={printShipment}
       />
     </MainLayout>
   );

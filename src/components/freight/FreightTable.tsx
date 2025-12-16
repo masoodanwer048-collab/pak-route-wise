@@ -31,6 +31,7 @@ import {
   Train,
   Copy,
   FileDown,
+  Printer,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -39,6 +40,7 @@ interface FreightTableProps {
   onView: (shipment: FreightShipment) => void;
   onEdit: (shipment: FreightShipment) => void;
   onDelete: (id: string) => void;
+  onPrint?: (shipment: FreightShipment) => void;
 }
 
 const statusColors = {
@@ -57,7 +59,7 @@ const modeIcons = {
   rail: Train,
 };
 
-export function FreightTable({ shipments, onView, onEdit, onDelete }: FreightTableProps) {
+export function FreightTable({ shipments, onView, onEdit, onDelete, onPrint }: FreightTableProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleCopyReference = (reference: string) => {
@@ -181,6 +183,12 @@ export function FreightTable({ shipments, onView, onEdit, onDelete }: FreightTab
                               <FileDown className="h-4 w-4 mr-2" />
                               Export Details
                             </DropdownMenuItem>
+                            {onPrint && (
+                              <DropdownMenuItem onClick={() => onPrint(shipment)}>
+                                <Printer className="h-4 w-4 mr-2" />
+                                Print
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"

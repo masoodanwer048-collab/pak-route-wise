@@ -47,6 +47,7 @@ import { cn } from '@/lib/utils';
 import { useDocuments, ShippingDocument, DocumentStatus } from '@/hooks/useDocuments';
 import { DocumentDialog } from '@/components/documents/DocumentDialog';
 import { toast } from 'sonner';
+import { BLPrintView } from '@/components/documents/BLPrintView';
 
 const statusColors: Record<DocumentStatus, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -73,6 +74,7 @@ export default function BillOfLading() {
   const [editDocument, setEditDocument] = useState<ShippingDocument | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewDocument, setViewDocument] = useState<ShippingDocument | null>(null);
+  const [printDocument, setPrintDocument] = useState<ShippingDocument | null>(null);
 
   const handleSave = (docData: Omit<ShippingDocument, 'id' | 'createdAt'>) => {
     if (editDocument) {
@@ -295,9 +297,9 @@ export default function BillOfLading() {
                         <Copy className="h-4 w-4 mr-2" />
                         Copy BL Number
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setPrintDocument(doc)}>
                         <Printer className="h-4 w-4 mr-2" />
-                        Print
+                        Print BL
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -347,6 +349,14 @@ export default function BillOfLading() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+
+      {/* Print View */}
+      <BLPrintView
+        open={!!printDocument}
+        onOpenChange={(open) => !open && setPrintDocument(null)}
+        document={printDocument}
+      />
     </MainLayout>
   );
 }
