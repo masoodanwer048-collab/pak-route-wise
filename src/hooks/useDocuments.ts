@@ -19,7 +19,11 @@ export interface ShippingDocument {
   pod?: string; // Port of Discharge
   // Parties
   shipper: string;
+  shipperAddress?: string;
+  shipperContact?: string;
   consignee: string;
+  consigneeAddress?: string;
+  consigneeContact?: string;
   notifyParties: string[]; // Changed from single string to array
   // Cargo
   cargoType: 'FCL' | 'LCL'; // Added
@@ -39,6 +43,19 @@ export interface ShippingDocument {
   freightTerms: 'prepaid' | 'collect';
   remarks?: string;
   createdAt: string;
+  // Manifest Specific
+  recipient?: string;
+  recipientEmail?: string;
+  recipientAddress?: string;
+  recipientPhone?: string;
+  manifestItems?: {
+    id: string;
+    description: string;
+    quantity: number;
+    weight: number;
+    dimensions: string;
+    value: number;
+  }[];
 }
 
 const generateMockDocuments = (type: DocumentType, count: number): ShippingDocument[] => {
@@ -109,6 +126,9 @@ const generateMockDocuments = (type: DocumentType, count: number): ShippingDocum
     const height = Math.floor(Math.random() * 100 + 50);
     const volume = (length * width * height) / 1000000; // CBM
 
+    const shipper = shippers[Math.floor(Math.random() * shippers.length)];
+    const consignee = consignees[Math.floor(Math.random() * consignees.length)];
+
     return {
       id: `${config.prefix}${String(Math.floor(Math.random() * 999999999)).padStart(9, '0')}`,
       type,
@@ -121,9 +141,13 @@ const generateMockDocuments = (type: DocumentType, count: number): ShippingDocum
       destination: config.destinations[Math.floor(Math.random() * config.destinations.length)],
       pol: (type === 'bl' || type === 'packing_list') ? config.origins[Math.floor(Math.random() * config.origins.length)] : undefined,
       pod: (type === 'bl' || type === 'packing_list') ? config.destinations[Math.floor(Math.random() * config.destinations.length)] : undefined,
-      shipper: shippers[Math.floor(Math.random() * shippers.length)],
-      consignee: consignees[Math.floor(Math.random() * consignees.length)],
-      notifyParties: [consignees[Math.floor(Math.random() * consignees.length)]],
+      shipper,
+      shipperAddress: '123 Export Zone, Industrial Area, Shanghai, China',
+      shipperContact: '+86 21 1234 5678',
+      consignee,
+      consigneeAddress: 'Plot 45-B, Industrial Estate, Karachi, Pakistan',
+      consigneeContact: '+92 21 3456 7890',
+      notifyParties: [consignee],
       cargoType: isFCL ? 'FCL' : 'LCL',
       containers,
       marksAndNumbers: !isFCL ? `M/NO: ${Math.floor(Math.random() * 1000)}` : undefined,
@@ -139,6 +163,28 @@ const generateMockDocuments = (type: DocumentType, count: number): ShippingDocum
       freightTerms: Math.random() > 0.5 ? 'prepaid' : 'collect',
       remarks: '',
       createdAt: new Date().toISOString(),
+      recipient: consignee,
+      recipientEmail: 'recipient@example.com',
+      recipientAddress: '456 Import Lane, Destination City',
+      recipientPhone: '+92 300 1234567',
+      manifestItems: type === 'manifest' ? [
+        {
+          id: '1',
+          description: 'Electronic Components',
+          quantity: 100,
+          weight: 500,
+          dimensions: '50x50x50 cm',
+          value: 5000
+        },
+        {
+          id: '2',
+          description: 'Spare Parts',
+          quantity: 50,
+          weight: 200,
+          dimensions: '30x30x30 cm',
+          value: 1500
+        }
+      ] : undefined
     };
   });
 };

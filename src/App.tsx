@@ -25,6 +25,7 @@ import RailFreight from "./pages/freight/RailFreight";
 import RateCalculator from "./pages/freight/RateCalculator";
 import GDFiling from "./pages/customs/GDFiling";
 import HSCodeLookup from "./pages/customs/HSCodeLookup";
+import Examination from "./pages/customs/Examination";
 import DutyAssessment from "./pages/import/DutyAssessment";
 import ImportIndex from "./pages/import/ImportIndex";
 import IGMManagement from "./pages/import/IGMManagement";
@@ -34,6 +35,7 @@ import PackingList from "./pages/documents/PackingList";
 import TransitManagement from "./pages/atta/TransitManagement";
 import DesignSystem from "./pages/DesignSystem";
 
+import Manifest from "./pages/documents/Manifest";
 import AirWaybill from "./pages/documents/AirWaybill";
 import Bilty from "./pages/documents/Bilty";
 import NotFound from "./pages/NotFound";
@@ -64,6 +66,8 @@ import DocumentsManager from "./pages/compliance/DocumentsManager";
 import CustomsRules from "./pages/compliance/CustomsRules";
 import AuditTrail from "./pages/compliance/AuditTrail";
 import SettingsLayout from "./pages/settings/SettingsLayout";
+import EmployeeManagement from "./pages/hr/EmployeeManagement";
+import PayrollManagement from "./pages/hr/PayrollManagement";
 
 const queryClient = new QueryClient();
 
@@ -94,13 +98,13 @@ const App = () => (
                   <Route path="/documents/packing-list" element={<PackingList />} />
                   <Route path="/documents/bilty" element={<Bilty />} />
                   <Route path="/documents/awb" element={<AirWaybill />} />
-                  <Route path="/documents/manifest" element={<BillOfLading />} />
+                  <Route path="/documents/manifest" element={<Manifest />} />
 
                   {/* Customs */}
                   <Route path="/customs/gd" element={<GDFiling />} />
                   <Route path="/customs/hs-codes" element={<HSCodeLookup />} />
                   <Route path="/customs/duty-calculator" element={<HSCodeLookup />} />
-                  <Route path="/customs/examination" element={<GDFiling />} />
+                  <Route path="/customs/examination" element={<Examination />} />
                   <Route path="/customs/gate-pass" element={<GDFiling />} />
 
                   {/* Import */}
@@ -162,6 +166,10 @@ const App = () => (
                   <Route path="/tracking/containers" element={<RoadFreight />} />
                   <Route path="/tracking/milestones" element={<RoadFreight />} />
                   <Route path="/tracking/alerts" element={<RoadFreight />} />
+
+                  {/* HR Management */}
+                  <Route path="/hr/employees" element={<EmployeeManagement />} />
+                  <Route path="/hr/payroll" element={<PayrollManagement />} />
 
                   {/* Reports & Settings */}
                   <Route path="/reports" element={<GDFiling />} />

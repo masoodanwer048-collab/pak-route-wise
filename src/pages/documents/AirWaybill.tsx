@@ -34,19 +34,23 @@ import {
   FileText,
   Plane,
   MoreHorizontal,
-  Eye,
   Edit,
   Printer,
   Copy,
   Trash2,
   CheckCircle,
   Clock,
-  Package,
+  FileSpreadsheet,
+  File as FileIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDocuments, ShippingDocument, DocumentStatus } from '@/hooks/useDocuments';
 import { DocumentDialog } from '@/components/documents/DocumentDialog';
+import { AWBPrintView } from '@/components/documents/AWBPrintView';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const statusColors: Record<DocumentStatus, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -71,6 +75,7 @@ export default function AirWaybill() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editDocument, setEditDocument] = useState<ShippingDocument | null>(null);
+  const [printDocument, setPrintDocument] = useState<ShippingDocument | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleSave = (docData: Omit<ShippingDocument, 'id' | 'createdAt'>) => {
@@ -97,21 +102,79 @@ export default function AirWaybill() {
     toast.success('AWB number copied to clipboard');
   };
 
-  const handleExport = () => {
-    const csv = [
-      ['AWB Number', 'Flight', 'Carrier', 'Origin', 'Destination', 'Shipper', 'Consignee', 'Weight', 'Status', 'Date'].join(','),
-      ...documents.map((d) =>
-        [d.documentNumber, d.voyageFlightNo, d.carrier, d.origin, d.destination, d.shipper, d.consignee, d.weight, d.status, d.issueDate].join(',')
-      ),
-    ].join('\n');
+  // --- Export List Functions ---
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFontSize(18);
+    doc.text('Kohesar Logistics - Air Waybills', 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
+
+    const tableData = documents.map(d => [
+      d.documentNumber,
+      d.voyageFlightNo,
+      `${d.origin} -> ${d.destination}`,
+      d.shipper,
+      d.consignee,
+      d.weight,
+      d.status
+    ]);
+
+    autoTable(doc, {
+      head: [['AWB #', 'Flight', 'Route', 'Shipper', 'Consignee', 'Weight', 'Status']],
+      body: tableData,
+      startY: 35,
+    });
+
+    doc.save(`awb-list-${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success('PDF Export downloaded');
+  };
+
+  const handleExportExcel = () => {
+    const data = documents.map(d => ({
+      'AWB Number': d.documentNumber,
+      'Flight': d.voyageFlightNo,
+      'Carrier': d.carrier,
+      'Origin': d.origin,
+      'Destination': d.destination,
+      'Shipper': d.shipper,
+      'Consignee': d.consignee,
+      'Weight': d.weight,
+      'Status': d.status,
+      'Date': d.issueDate
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Air Waybills");
+    XLSX.writeFile(wb, `awb-list-${new Date().toISOString().split('T')[0]}.xlsx`);
+    toast.success('Excel Export downloaded');
+  };
+
+  const handleExportWord = () => {
+    // Create a simple HTML table for Word
+    let html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='utf-8'><title>Air Waybills</title></head><body>`;
+    html += `<h1>Kohesar Logistics - AWB List</h1>`;
+    html += `<table border="1" style="border-collapse: collapse; width: 100%;"><thead><tr><th>AWB #</th><th>Flight</th><th>Route</th><th>Shipper</th><th>Consignee</th><th>Weight</th><th>Status</th></tr></thead><tbody>`;
+
+    documents.forEach(d => {
+      html += `<tr><td>${d.documentNumber}</td><td>${d.voyageFlightNo}</td><td>${d.origin} -> ${d.destination}</td><td>${d.shipper}</td><td>${d.consignee}</td><td>${d.weight}</td><td>${d.status}</td></tr>`;
+    });
+
+    html += `</tbody></table></body></html>`;
+
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `air-waybills-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    toast.success('Export completed');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `awb-list-${new Date().toISOString().split('T')[0]}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Word Export downloaded');
   };
 
   return (
@@ -146,10 +209,26 @@ export default function AirWaybill() {
             </Select>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportPDF}>
+                  <FileIcon className="h-4 w-4 mr-2 text-red-500" /> Export PDF List
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportWord}>
+                  <FileText className="h-4 w-4 mr-2 text-blue-500" /> Export Word List
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportExcel}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2 text-green-500" /> Export Excel List
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button variant="accent" onClick={() => setIsCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Create AWB</span>
@@ -263,13 +342,13 @@ export default function AirWaybill() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-popover">
+                            <DropdownMenuItem onClick={() => setPrintDocument(doc)}>
+                              <Printer className="h-4 w-4 mr-2" />
+                              Print & Export
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleCopy(doc.documentNumber)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Copy AWB Number
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Printer className="h-4 w-4 mr-2" />
-                              Print
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -326,6 +405,10 @@ export default function AirWaybill() {
                 </div>
 
                 <div className="flex items-center gap-2 pt-2">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => setPrintDocument(doc)}>
+                    <Printer className="h-4 w-4 mr-1" />
+                    Print
+                  </Button>
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => setEditDocument(doc)}>
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
@@ -357,6 +440,13 @@ export default function AirWaybill() {
         type="awb"
         document={editDocument}
         onSave={handleSave}
+      />
+
+      {/* Print View Modal */}
+      <AWBPrintView
+        open={!!printDocument}
+        document={printDocument}
+        onOpenChange={(open) => !open && setPrintDocument(null)}
       />
 
       {/* Delete Confirmation */}

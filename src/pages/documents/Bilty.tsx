@@ -47,6 +47,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useDocuments, ShippingDocument, DocumentStatus } from '@/hooks/useDocuments';
 import { DocumentDialog } from '@/components/documents/DocumentDialog';
+import { BiltyPrintView } from '@/components/documents/BiltyPrintView';
 import { toast } from 'sonner';
 
 const statusColors: Record<DocumentStatus, string> = {
@@ -72,6 +73,7 @@ export default function Bilty() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editDocument, setEditDocument] = useState<ShippingDocument | null>(null);
+  const [printDocument, setPrintDocument] = useState<ShippingDocument | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleSave = (docData: Omit<ShippingDocument, 'id' | 'createdAt'>) => {
@@ -276,9 +278,9 @@ export default function Bilty() {
                               <Copy className="h-4 w-4 mr-2" />
                               Copy Bilty Number
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setPrintDocument(doc)}>
                               <Printer className="h-4 w-4 mr-2" />
-                              Print
+                              Print Pass
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -372,6 +374,13 @@ export default function Bilty() {
         type="bilty"
         document={editDocument}
         onSave={handleSave}
+      />
+
+      {/* Print View */}
+      <BiltyPrintView
+        open={!!printDocument}
+        document={printDocument}
+        onOpenChange={(open) => !open && setPrintDocument(null)}
       />
 
       {/* Delete Confirmation */}

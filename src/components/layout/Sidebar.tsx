@@ -24,7 +24,8 @@ import {
   Building2,
   Anchor,
   Layers,
-  Palette
+  Palette,
+  Users
 } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -192,6 +193,20 @@ const navStructure: NavGroup[] = [
           { name: 'Duty Payments', path: '/finance/duties' },
           { name: 'Demurrage', path: '/finance/demurrage' },
           { name: 'Reports', path: '/finance/reports' },
+        ],
+      },
+    ]
+  },
+  {
+    title: "HR & Payroll",
+    items: [
+      {
+        id: 'hr',
+        name: 'Human Resources',
+        icon: Users,
+        subItems: [
+          { name: 'Employees', path: '/hr/employees' },
+          { name: 'Payroll', path: '/hr/payroll' },
         ],
       },
     ]

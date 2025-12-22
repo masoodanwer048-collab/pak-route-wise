@@ -288,7 +288,7 @@ export default function BillOfLading() {
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9">
+                      <Button variant="ghost" size="icon" className="h-9 w-9" data-testid="bl-menu-trigger">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -297,7 +297,7 @@ export default function BillOfLading() {
                         <Copy className="h-4 w-4 mr-2" />
                         Copy BL Number
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setPrintDocument(doc)}>
+                      <DropdownMenuItem onClick={() => setPrintDocument(doc)} data-testid="bl-print-btn">
                         <Printer className="h-4 w-4 mr-2" />
                         Print BL
                       </DropdownMenuItem>
