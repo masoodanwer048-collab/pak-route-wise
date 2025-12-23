@@ -8,11 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Upload, File, Eye, Trash2, FolderOpen, Plus, Download, FileText, FileSpreadsheet, MoreVertical } from "lucide-react";
+import { Search, Upload, File, Eye, Trash2, FolderOpen, Plus, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { DocumentType, ShippingDocument } from "@/hooks/useDocuments";
-import { generatePDF, generateExcel } from "@/utils/documentGenerator";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -29,34 +28,19 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-interface Document {
-    id: string;
-    name: string;
-    type: string;
-    category: "Customs" | "Shipping" | "Invoices" | "Certificates";
-    uploadDate: string;
-    size: string;
-    status: "Verified" | "Pending" | "Rejected";
-    data?: any; // Store full document data if generated
-    docType?: DocumentType; // Store specific document type if generated
-}
-
-const initialDocs: Document[] = [
-    { id: "1", name: "Commercial Invoice #4400", type: "PDF", category: "Invoices", uploadDate: "2023-11-20", size: "1.2 MB", status: "Verified" },
-    { id: "2", name: "Packing List - Shipment A", type: "PDF", category: "Shipping", uploadDate: "2023-11-21", size: "0.8 MB", status: "Verified" },
-    { id: "3", name: "Origin Certificate", type: "JPG", category: "Certificates", uploadDate: "2023-11-22", size: "2.4 MB", status: "Pending" },
-];
+import { useShipmentDocuments, ShipmentDocument } from "@/hooks/useShipmentDocuments";
 
 const DocumentsManager = () => {
-    const [docs, setDocs] = useState<Document[]>(initialDocs);
+    // Integration with Supabase Hook
+    const { documents: docs, isLoading, uploadDocument, deleteDocument } = useShipmentDocuments();
+
     const [isUploadOpen, setIsUploadOpen] = useState(false);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false);
     const [createType, setCreateType] = useState<DocumentType>('bl');
 
     // Actions states
-    const [viewDoc, setViewDoc] = useState<Document | null>(null);
+    const [viewDoc, setViewDoc] = useState<ShipmentDocument | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
 
@@ -66,97 +50,61 @@ const DocumentsManager = () => {
     const handleUpload = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        const file = formData.get("file") as File;
+        const name = formData.get("name") as string;
+        const category = formData.get("category") as string;
+        // Map category/name to a type for DB
+        const type = category === 'Customs' ? 'permit' : 'general';
 
-        const newDoc: Document = {
-            id: Math.random().toString(),
-            name: formData.get("name") as string,
-            type: "PDF", // Mock file type
-            category: formData.get("category") as "Customs" | "Shipping" | "Invoices" | "Certificates",
-            uploadDate: new Date().toISOString().split('T')[0],
-            size: "1.0 MB",
-            status: "Pending"
-        };
-
-        setDocs([newDoc, ...docs]);
-        setIsUploadOpen(false);
-        toast({
-            title: "File Uploaded",
-            description: `${newDoc.name} added to repository.`
-        });
+        if (file) {
+            uploadDocument({ file, type, category });
+            setIsUploadOpen(false);
+            // toast handled by hook
+        }
     };
 
     const handleCreateDocument = (doc: Omit<ShippingDocument, 'id' | 'createdAt'>) => {
-        const newDoc: Document = {
-            id: Math.random().toString(),
-            name: `${doc.type === 'bl' ? 'Bill of Lading' : doc.type === 'packing_list' ? 'Packing List' : 'Document'} - ${doc.documentNumber}`,
-            type: "PDF (Generated)",
-            category: "Shipping",
-            uploadDate: new Date().toISOString().split('T')[0],
-            size: "24 KB",
-            status: "Pending",
-            data: doc,
-            docType: doc.type
-        };
-        setDocs([newDoc, ...docs]);
+        // This is for generating docs (BL/Packing List) via form.
+        // Ideally we should save this to DB as well.
+        // For now, keeping the toast mock for generation, 
+        // but typically this would call an API or save JSON to DB.
         toast({
             title: "Document Created",
-            description: `${newDoc.name} generated successfully.`
+            description: "Document generated locally. (Integration pending for saving generated docs to DB)",
         });
+        setIsCreateOpen(false);
     }
 
     const deleteDoc = () => {
         if (deleteId) {
-            setDocs(docs.filter(d => d.id !== deleteId));
+            deleteDocument(deleteId);
             setDeleteId(null);
-            toast({ title: "Deleted", description: "Document removed successfully." });
         }
     };
 
-    const handleView = (doc: Document) => {
-        if (doc.data && doc.docType) {
-            setViewDoc(doc);
-            setIsDocumentDialogOpen(true);
+    const handleView = (doc: ShipmentDocument) => {
+        setViewDoc(doc);
+    };
+
+    const handleDownload = (doc: ShipmentDocument, format: "pdf" | "excel") => {
+        if (doc.file_url) {
+            // Ideally hook provides signed URL.
+            // For now, just show toast or try open
+            // Assuming bucket is public for simplicity in demo or need signed url func
+            toast({ title: "Opening File", description: "Attempting to open file..." });
+            // We'd ideally construct the URL differently if it were private
         } else {
-            setViewDoc(doc);
-        }
-    };
-
-    const handleDownload = (doc: Document, format: "pdf" | "excel") => {
-        if (!doc.data) {
             toast({
                 title: "Download Unavailable",
-                description: "This legacy document does not have structured data for generation.",
-                variant: "destructive"
-            });
-            return;
-        }
-
-        toast({
-            title: "Generating File...",
-            description: `Preparing ${format.toUpperCase()} for ${doc.name}...`,
-        });
-
-        try {
-            if (format === 'pdf') {
-                generatePDF(doc.data);
-            } else {
-                generateExcel(doc.data);
-            }
-            toast({
-                title: "Download Started",
-                description: "Your file is being downloaded.",
-            });
-        } catch (error) {
-            console.error(error);
-            toast({
-                title: "Generation Failed",
-                description: "There was an error generating the file.",
+                description: "File not found or access denied.",
                 variant: "destructive"
             });
         }
     };
 
     const filteredDocs = docs.filter(d => d.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (isLoading) return <div className="p-8">Loading documents...</div>;
 
     return (
         <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-slide-up">
@@ -217,15 +165,9 @@ const DocumentsManager = () => {
                             setIsDocumentDialogOpen(open);
                             if (!open) setViewDoc(null);
                         }}
-                        type={viewDoc?.docType || 'bl'}
-                        document={viewDoc?.data}
-                        onSave={(updatedDoc) => {
-                            // Update the existing document in state
-                            if (viewDoc) {
-                                setDocs(docs.map(d => d.id === viewDoc.id ? { ...d, data: updatedDoc, name: `${updatedDoc.type === 'bl' ? 'Bill of Lading' : 'Document'} - ${updatedDoc.documentNumber}` } : d));
-                                toast({ title: "Updated", description: "Document updated successfully." });
-                            }
-                        }}
+                        type={'bl'} // default
+                        document={null}
+                        onSave={() => { }}
                     />
 
                     <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
@@ -259,7 +201,7 @@ const DocumentsManager = () => {
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="file">File</Label>
-                                    <Input id="file" type="file" required />
+                                    <Input id="file" name="file" type="file" required />
                                 </div>
                                 <Button type="submit">Upload</Button>
                             </form>
@@ -349,25 +291,6 @@ const DocumentsManager = () => {
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
-
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" title="Download">
-                                                    <Download className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => handleDownload(doc, 'pdf')}>
-                                                    <FileText className="mr-2 h-4 w-4" />
-                                                    Download PDF
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleDownload(doc, 'excel')}>
-                                                    <FileSpreadsheet className="mr-2 h-4 w-4" />
-                                                    Download Excel
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -385,7 +308,7 @@ const DocumentsManager = () => {
                 </CardContent>
             </Card>
 
-            {/* View Modal for Non-Generated Docs */}
+            {/* View Modal */}
             <Dialog open={!!viewDoc && !isDocumentDialogOpen} onOpenChange={(open) => !open && setViewDoc(null)}>
                 <DialogContent>
                     <DialogHeader>
@@ -407,10 +330,6 @@ const DocumentsManager = () => {
                                 <div className="col-span-3">{viewDoc.uploadDate}</div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label className="text-right">Size</Label>
-                                <div className="col-span-3">{viewDoc.size}</div>
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
                                 <Label className="text-right">Status</Label>
                                 <div className="col-span-3"><Badge>{viewDoc.status}</Badge></div>
                             </div>
@@ -418,7 +337,7 @@ const DocumentsManager = () => {
                     )}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => viewDoc && handleDownload(viewDoc, 'pdf')}>
-                            <Download className="mr-2 h-4 w-4" /> Download
+                            <Download className="mr-2 h-4 w-4" /> Open File
                         </Button>
                         <Button onClick={() => setViewDoc(null)}>Close</Button>
                     </DialogFooter>

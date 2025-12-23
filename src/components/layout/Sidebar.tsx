@@ -56,6 +56,7 @@ const navStructure: NavGroup[] = [
   {
     title: "Operations",
     items: [
+      { id: 'ops-workflow', name: 'Operations Workflow', icon: Layers, path: '/operations/workflow' },
       {
         id: 'freight',
         name: 'Freight Management',
@@ -177,6 +178,19 @@ const navStructure: NavGroup[] = [
           { name: 'Inventory', path: '/warehouse/inventory' },
           { name: 'GRN / GIN', path: '/warehouse/grn' },
           { name: 'Bonded Warehouse', path: '/warehouse/bonded' },
+        ],
+      },
+    ]
+  },
+  {
+    title: "Asset Management",
+    items: [
+      {
+        id: 'fleet',
+        name: 'Fleet Management',
+        icon: Truck,
+        subItems: [
+          { name: 'Vehicles', path: '/fleet/vehicles' },
         ],
       },
     ]

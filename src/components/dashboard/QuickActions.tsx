@@ -1,20 +1,24 @@
-import { 
-  Plus, 
-  FileText, 
-  Calculator, 
+import {
+  Plus,
+  FileText,
+  Calculator,
   Search,
   Truck,
   Ship,
   Package,
-  ClipboardCheck
+  ClipboardCheck,
+  Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+
 
 const actions = [
-  { icon: Plus, label: 'New Shipment', variant: 'accent' as const },
-  { icon: FileText, label: 'File GD', variant: 'default' as const },
-  { icon: Calculator, label: 'Duty Calculator', variant: 'default' as const },
-  { icon: Search, label: 'Track Shipment', variant: 'default' as const },
+  { icon: Plus, label: 'New Shipment', variant: 'accent' as const, path: '/freight/road' },
+  { icon: FileText, label: 'File GD', variant: 'default' as const, path: '/customs/gd' },
+  { icon: Layers, label: 'Shipment Workflow', variant: 'default' as const, path: '/operations/workflow' },
+  { icon: Calculator, label: 'Duty Calculator', variant: 'default' as const, path: '/freight/calculator' },
+  { icon: Search, label: 'Track Shipment', variant: 'default' as const, path: '/tracking/gps' },
 ];
 
 const quickLinks = [
@@ -25,6 +29,7 @@ const quickLinks = [
 ];
 
 export function QuickActions() {
+  const navigate = useNavigate();
   return (
     <div className="space-y-6">
       {/* Primary Actions */}
@@ -36,6 +41,7 @@ export function QuickActions() {
               key={index}
               variant={action.variant}
               className="justify-start h-auto py-3"
+              onClick={() => navigate(action.path)}
             >
               <action.icon className="h-4 w-4 mr-2" />
               {action.label}

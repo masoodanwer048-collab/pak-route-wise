@@ -1,9 +1,12 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { TransportMode, ShipmentStatus } from '@/types/logistics';
 
 export interface FreightShipment {
-  id: string;
-  reference: string;
+  id: string; // UUID from DB
+  reference: string; // shipment_id from DB
   mode: TransportMode;
   origin: string;
   destination: string;
@@ -21,6 +24,12 @@ export interface FreightShipment {
   consignor?: string;
   notes?: string;
   createdAt: string;
+  // Bonded Carrier Fields
+  commodity?: string;
+  hs_code?: string;
+  container_number?: string;
+  incoterms?: string;
+  insurance_policy?: string;
 }
 
 export interface FreightFilters {
@@ -31,79 +40,36 @@ export interface FreightFilters {
   destination: string;
 }
 
-const generateMockShipments = (mode: TransportMode, count: number): FreightShipment[] => {
-  const statuses: ShipmentStatus[] = ['pending', 'in_transit', 'customs_hold', 'cleared', 'delivered', 'delayed'];
-  
-  const modeConfig = {
-    road: {
-      prefix: 'TRK',
-      carriers: ['National Logistics', 'Express Trucking', 'Pak Carriers', 'Swift Transport'],
-      vehicles: ['ABC-1234', 'XYZ-5678', 'KHI-9012', 'LHR-3456'],
-      drivers: ['Muhammad Ali', 'Ahmed Khan', 'Hamid Shah', 'Imran Malik'],
-      origins: ['Karachi Port', 'Port Qasim', 'Lahore Dry Port', 'Peshawar'],
-      destinations: ['Lahore Dry Port', 'Faisalabad Dry Port', 'Multan Dry Port', 'Torkham Border'],
-    },
-    sea: {
-      prefix: 'SEA',
-      carriers: ['Maersk Line', 'MSC', 'CMA CGM', 'Hapag-Lloyd', 'Evergreen'],
-      vehicles: ['MV Ever Given', 'MSC Oscar', 'CMA CGM Marco Polo', 'Maersk Triple E'],
-      origins: ['Shanghai, China', 'Singapore', 'Dubai, UAE', 'Rotterdam, Netherlands'],
-      destinations: ['Karachi Port', 'Port Qasim', 'Gwadar Port', 'PICT'],
-    },
-    air: {
-      prefix: 'AIR',
-      carriers: ['PIA Cargo', 'Emirates SkyCargo', 'Qatar Airways Cargo', 'Turkish Cargo'],
-      vehicles: ['PK-701', 'EK-5891', 'QR-8012', 'TK-6002'],
-      origins: ['Dubai Airport', 'Singapore Changi', 'London Heathrow', 'Frankfurt Airport'],
-      destinations: ['Jinnah International', 'Allama Iqbal Airport', 'Islamabad Airport'],
-    },
-    rail: {
-      prefix: 'RAL',
-      carriers: ['Pakistan Railways', 'ML-1 Cargo', 'Freight Rail Services'],
-      vehicles: ['RAIL-001', 'RAIL-002', 'RAIL-003', 'RAIL-004'],
-      drivers: ['Rail Master A', 'Rail Master B'],
-      origins: ['Karachi Cantt Station', 'Lahore Junction', 'Peshawar Cantt'],
-      destinations: ['Lahore Junction', 'Faisalabad Station', 'Rawalpindi Station'],
-    },
-  };
-
-  const config = modeConfig[mode];
-  const consignees = ['ABC Trading Co.', 'XYZ Industries', 'Global Exports Pvt', 'Tech Solutions Ltd', 'Afghan Transit Ltd'];
-  const drivers = 'drivers' in config ? config.drivers : undefined;
-
-  return Array.from({ length: count }, (_, i) => {
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const etaDate = new Date();
-    etaDate.setDate(etaDate.getDate() + Math.floor(Math.random() * 14));
-    const etdDate = new Date();
-    etdDate.setDate(etdDate.getDate() - Math.floor(Math.random() * 7));
-
-    return {
-      id: `${config.prefix}-2024-${String(i + 1).padStart(4, '0')}`,
-      reference: `${config.prefix}-2024-${String(i + 1).padStart(4, '0')}`,
-      mode,
-      origin: config.origins[Math.floor(Math.random() * config.origins.length)],
-      destination: config.destinations[Math.floor(Math.random() * config.destinations.length)],
-      carrier: config.carriers[Math.floor(Math.random() * config.carriers.length)],
-      vehicle: config.vehicles[Math.floor(Math.random() * config.vehicles.length)],
-      driver: drivers?.[Math.floor(Math.random() * (drivers?.length || 0))],
-      weight: `${Math.floor(Math.random() * 40000 + 5000).toLocaleString()} kg`,
-      volume: mode === 'sea' || mode === 'air' ? `${Math.floor(Math.random() * 200 + 20)} CBM` : undefined,
-      containers: mode === 'road' || mode === 'rail' ? Math.floor(Math.random() * 4 + 1) : Math.floor(Math.random() * 10 + 1),
-      packages: Math.floor(Math.random() * 500 + 50),
-      status,
-      eta: etaDate.toISOString().split('T')[0],
-      etd: etdDate.toISOString().split('T')[0],
-      consignee: consignees[Math.floor(Math.random() * consignees.length)],
-      consignor: consignees[Math.floor(Math.random() * consignees.length)],
-      notes: '',
-      createdAt: new Date().toISOString(),
-    };
-  });
-};
+// Mapper to convert DB row to Frontend Model
+const mapToFreightShipment = (row: any): FreightShipment => ({
+  id: row.id,
+  reference: row.shipment_id,
+  mode: 'road', // Defaulting to road
+  origin: row.origin,
+  destination: row.destination,
+  carrier: 'N/A',
+  vehicle: row.vehicle_id || 'Unknown',
+  driver: row.driver_id,
+  weight: row.weight?.toString() || '',
+  volume: '',
+  containers: row.packages ? 1 : 0,
+  packages: row.packages,
+  status: row.status as ShipmentStatus,
+  eta: row.eta,
+  etd: row.etd || '',
+  consignee: 'Unknown', // row.customer?.name
+  consignor: '',
+  notes: '',
+  createdAt: row.created_at,
+  commodity: row.commodity,
+  hs_code: row.hs_code,
+  container_number: row.container_number,
+  incoterms: row.incoterms,
+  insurance_policy: row.insurance_policy,
+});
 
 export function useFreightShipments(mode: TransportMode) {
-  const [shipments, setShipments] = useState<FreightShipment[]>(() => generateMockShipments(mode, 12));
+  const queryClient = useQueryClient();
   const [filters, setFilters] = useState<FreightFilters>({
     search: '',
     status: 'all',
@@ -112,6 +78,26 @@ export function useFreightShipments(mode: TransportMode) {
     destination: '',
   });
 
+  // Fetch Shipments
+  const { data: shipments = [], isLoading } = useQuery({
+    queryKey: ['shipments', mode],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shipments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase fetch error:', error);
+        toast.error('Failed to fetch shipments. Ensure DB schema is applied.');
+        return [];
+      }
+
+      return data.map(mapToFreightShipment);
+    },
+  });
+
+  // Filter Logic
   const filteredShipments = useMemo(() => {
     return shipments.filter((shipment) => {
       // Search filter
@@ -119,12 +105,8 @@ export function useFreightShipments(mode: TransportMode) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
           shipment.reference.toLowerCase().includes(searchLower) ||
-          shipment.carrier.toLowerCase().includes(searchLower) ||
-          shipment.vehicle.toLowerCase().includes(searchLower) ||
-          shipment.driver?.toLowerCase().includes(searchLower) ||
           shipment.origin.toLowerCase().includes(searchLower) ||
-          shipment.destination.toLowerCase().includes(searchLower) ||
-          shipment.consignee.toLowerCase().includes(searchLower);
+          shipment.destination.toLowerCase().includes(searchLower);
         if (!matchesSearch) return false;
       }
 
@@ -132,21 +114,11 @@ export function useFreightShipments(mode: TransportMode) {
       if (filters.status !== 'all' && shipment.status !== filters.status) {
         return false;
       }
-
-      // Origin filter
-      if (filters.origin && !shipment.origin.toLowerCase().includes(filters.origin.toLowerCase())) {
-        return false;
-      }
-
-      // Destination filter
-      if (filters.destination && !shipment.destination.toLowerCase().includes(filters.destination.toLowerCase())) {
-        return false;
-      }
-
       return true;
     });
   }, [shipments, filters]);
 
+  // Statistics
   const stats = useMemo(() => {
     const total = shipments.length;
     const inTransit = shipments.filter((s) => s.status === 'in_transit').length;
@@ -158,49 +130,101 @@ export function useFreightShipments(mode: TransportMode) {
     return { total, inTransit, pending, delivered, customsHold, delayed };
   }, [shipments]);
 
-  const addShipment = useCallback((shipment: Omit<FreightShipment, 'id' | 'createdAt'>) => {
-    const newShipment: FreightShipment = {
-      ...shipment,
-      id: `${mode.toUpperCase().slice(0, 3)}-2024-${String(Date.now()).slice(-4)}`,
-      createdAt: new Date().toISOString(),
-    };
-    setShipments((prev) => [newShipment, ...prev]);
-    return newShipment;
-  }, [mode]);
+  // Mutations
+  const addShipmentMutation = useMutation({
+    mutationFn: async (newShipment: Omit<FreightShipment, 'id' | 'createdAt'>) => {
+      const { data, error } = await supabase
+        .from('shipments')
+        .insert({
+          shipment_id: newShipment.reference,
+          origin: newShipment.origin,
+          destination: newShipment.destination,
+          status: newShipment.status,
+          eta: newShipment.eta, // Ensure date format if needed
+          etd: newShipment.etd || null,
+          commodity: newShipment.commodity,
+          hs_code: newShipment.hs_code,
+          container_number: newShipment.container_number,
+          incoterms: newShipment.incoterms,
+          insurance_policy: newShipment.insurance_policy,
+          weight: parseFloat(newShipment.weight) || 0,
+          packages: newShipment.packages || 0,
+        })
+        .select()
+        .single();
 
-  const updateShipment = useCallback((id: string, updates: Partial<FreightShipment>) => {
-    setShipments((prev) =>
-      prev.map((shipment) => (shipment.id === id ? { ...shipment, ...updates } : shipment))
-    );
-  }, []);
+      if (error) throw error;
+      return mapToFreightShipment(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      toast.success('Shipment created successfully');
+    },
+    onError: (error: any) => {
+      console.error('Create error:', error);
+      toast.error(`Error creating shipment: ${error.message}`);
+    },
+  });
 
-  const deleteShipment = useCallback((id: string) => {
-    setShipments((prev) => prev.filter((shipment) => shipment.id !== id));
-  }, []);
+  const updateShipmentMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<FreightShipment> }) => {
+      const dbUpdates: any = {
+        origin: updates.origin,
+        destination: updates.destination,
+        status: updates.status,
+        eta: updates.eta,
+        etd: updates.etd,
+        commodity: updates.commodity,
+        hs_code: updates.hs_code,
+        container_number: updates.container_number,
+        incoterms: updates.incoterms,
+        insurance_policy: updates.insurance_policy,
+      };
+      // Cleanup undefined
+      Object.keys(dbUpdates).forEach(key => dbUpdates[key] === undefined && delete dbUpdates[key]);
 
-  const updateFilters = useCallback((newFilters: Partial<FreightFilters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-  }, []);
+      const { error } = await supabase
+        .from('shipments')
+        .update(dbUpdates)
+        .eq('id', id);
 
-  const clearFilters = useCallback(() => {
-    setFilters({
-      search: '',
-      status: 'all',
-      dateRange: 'all',
-      origin: '',
-      destination: '',
-    });
-  }, []);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      toast.success('Shipment updated');
+    },
+    onError: (error: any) => {
+      toast.error(`Error updating: ${error.message}`);
+    }
+  });
+
+  const deleteShipmentMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('shipments').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      toast.success('Shipment deleted');
+    },
+  });
 
   return {
     shipments: filteredShipments,
     allShipments: shipments,
     filters,
     stats,
-    addShipment,
-    updateShipment,
-    deleteShipment,
-    updateFilters,
-    clearFilters,
+    addShipment: addShipmentMutation.mutate,
+    updateShipment: (id: string, updates: Partial<FreightShipment>) => updateShipmentMutation.mutate({ id, updates }),
+    deleteShipment: deleteShipmentMutation.mutate,
+    updateFilters: (newFilters: Partial<FreightFilters>) => setFilters((prev) => ({ ...prev, ...newFilters })),
+    clearFilters: () => setFilters({
+      search: '',
+      status: 'all',
+      dateRange: 'all',
+      origin: '',
+      destination: '',
+    }),
   };
 }

@@ -58,6 +58,7 @@ import BondedWarehouse from "./pages/warehouse/BondedWarehouse";
 import ContainerTracking from "./pages/maritime/ContainerTracking";
 import VesselSchedule from "./pages/maritime/VesselSchedule";
 import PortDirectory from "./pages/maritime/PortDirectory";
+import Vehicles from "./pages/fleet/Vehicles";
 import Invoices from "./pages/finance/Invoices";
 import DutyPayments from "./pages/finance/DutyPayments";
 import Demurrage from "./pages/finance/Demurrage";
@@ -68,6 +69,8 @@ import AuditTrail from "./pages/compliance/AuditTrail";
 import SettingsLayout from "./pages/settings/SettingsLayout";
 import EmployeeManagement from "./pages/hr/EmployeeManagement";
 import PayrollManagement from "./pages/hr/PayrollManagement";
+import OperationsWorkflow from "./pages/OperationsWorkflow";
+
 
 const queryClient = new QueryClient();
 
@@ -140,6 +143,9 @@ const App = () => (
                   <Route path="/warehouse/grn" element={<GRNGIN />} />
                   <Route path="/warehouse/bonded" element={<BondedWarehouse />} />
 
+                  {/* Fleet */}
+                  <Route path="/fleet/vehicles" element={<Vehicles />} />
+
                   {/* Air Cargo */}
                   <Route path="/air-cargo/awb" element={<BillOfLading />} />
                   <Route path="/air-cargo/handling" element={<RoadFreight />} />
@@ -176,6 +182,7 @@ const App = () => (
                   <Route path="/design-system" element={<DesignSystem />} />
                   <Route path="/settings" element={<SettingsLayout />} />
 
+                  <Route path="/operations/workflow" element={<OperationsWorkflow />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </ProtectedRoute>
