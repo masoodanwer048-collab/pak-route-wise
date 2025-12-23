@@ -168,6 +168,21 @@ const navStructure: NavGroup[] = [
     ]
   },
   {
+    title: "Courier Service",
+    items: [
+      {
+        id: 'courier',
+        name: 'Courier Module',
+        icon: Truck,
+        subItems: [
+          { name: 'Shipment Booking', path: '/courier/booking' },
+          { name: 'Live Tracking', path: '/courier/tracking' },
+          { name: 'Courier Management', path: '/courier/management' },
+        ],
+      },
+    ]
+  },
+  {
     title: "Warehousing",
     items: [
       {

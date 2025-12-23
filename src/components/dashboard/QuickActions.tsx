@@ -19,6 +19,7 @@ const actions = [
   { icon: Layers, label: 'Shipment Workflow', variant: 'default' as const, path: '/operations/workflow' },
   { icon: Calculator, label: 'Duty Calculator', variant: 'default' as const, path: '/freight/calculator' },
   { icon: Search, label: 'Track Shipment', variant: 'default' as const, path: '/tracking/gps' },
+  { icon: Package, label: 'Book Courier', variant: 'accent' as const, path: '/courier/booking' },
 ];
 
 const quickLinks = [

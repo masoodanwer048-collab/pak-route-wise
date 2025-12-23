@@ -70,6 +70,10 @@ import SettingsLayout from "./pages/settings/SettingsLayout";
 import EmployeeManagement from "./pages/hr/EmployeeManagement";
 import PayrollManagement from "./pages/hr/PayrollManagement";
 import OperationsWorkflow from "./pages/OperationsWorkflow";
+import CourierBooking from "./pages/courier/CourierBooking";
+import CourierTracking from "./pages/courier/CourierTracking";
+import CourierManagement from "./pages/courier/CourierManagement";
+
 
 
 const queryClient = new QueryClient();
@@ -145,6 +149,12 @@ const App = () => (
 
                   {/* Fleet */}
                   <Route path="/fleet/vehicles" element={<Vehicles />} />
+
+                  {/* Courier Service */}
+                  <Route path="/courier/booking" element={<CourierBooking />} />
+                  <Route path="/courier/tracking" element={<CourierTracking />} />
+                  <Route path="/courier/management" element={<CourierManagement />} />
+
 
                   {/* Air Cargo */}
                   <Route path="/air-cargo/awb" element={<BillOfLading />} />
