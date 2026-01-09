@@ -1,7 +1,9 @@
--- Enterprise Carrier Manifest Schema (Flexible Workflow)
--- This is the authoritative schema for the carrier_manifests module.
--- It supports over 80 fields for Logistics, Customs, Security, and Financials.
--- Most fields are nullable to support "Save as Draft" functionality.
+/* 
+Enterprise Carrier Manifest Schema (Flexible Workflow)
+This is the authoritative schema for the carrier_manifests module.
+It supports over 80 fields for Logistics, Customs, Security, and Financials.
+Most fields are nullable to support "Save as Draft" functionality.
+*/
 
 -- 1. Create Types (Safe creation)
 DO $$ BEGIN
