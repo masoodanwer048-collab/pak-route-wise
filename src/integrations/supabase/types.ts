@@ -17,57 +17,279 @@ export type Database = {
       carrier_manifests: {
         Row: {
           id: string
-          shipment_id: string | null
-          carrier_user_id: string
           manifest_number: string
-          vehicle_number: string
-          driver_name: string
-          driver_cnic: string | null
-          container_numbers: string[] | null
-          seal_numbers: string[] | null
-          gross_weight: number | null
-          departure_location: string | null
-          destination_location: string | null
-          departure_date: string | null
-          status: "DRAFT" | "SUBMITTED" | "APPROVED"
+          manifest_type: "LINEHAUL" | "DELIVERY" | "RTO" | "VENDOR" | "CONTAINER" | null
+          status: "DRAFT" | "LOADING" | "READY_FOR_HANDOVER" | "HANDED_OVER" | "IN_TRANSIT" | "RECEIVED" | "CLOSED" | "CANCELLED" | "REOPENED" | "SUBMITTED" | null
+          origin_hub: string
+          destination_hub: string
+          route_name: string | null
+          route_code: string | null
+          dispatch_date_time: string | null
+          expected_arrival_date_time: string | null
+          actual_arrival_date_time: string | null
+          created_by: string | null
           created_at: string
-          updated_at: string
+          updated_at: string | null
+          approved_by: string | null
+          approved_at: string | null
+          reopen_reason: string | null
+          reopen_approved_by: string | null
+          cancel_reason: string | null
+          cancelled_by: string | null
+
+          // Carrier
+          carrier_type: "OWN_FLEET" | "VENDOR" | "BUS_CARGO" | "AIR" | "3PL" | "SHIPPING_LINE"
+          carrier_name: string
+          carrier_id: string | null
+          carrier_phone: string | null
+          carrier_address: string | null
+
+          // Driver
+          driver_name: string
+          driver_cnic: string
+          driver_mobile: string | null
+          driver_license_no: string | null
+          driver_license_expiry: string | null
+          driver_address: string | null
+          driver_emergency_contact: string | null
+          helper_name: string | null
+          helper_cnic: string | null
+          helper_mobile: string | null
+          driver_signature_url: string | null
+          driver_otp_verified: boolean | null
+
+          // Vehicle
+          vehicle_reg_no: string
+          vehicle_type: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_year: string | null
+          vehicle_color: string | null
+          engine_no: string | null
+          chassis_no: string | null
+          fitness_cert_no: string | null
+          fitness_expiry: string | null
+          vehicle_insurance_company: string | null
+          vehicle_insurance_expiry: string | null
+          tracker_id: string | null
+          odometer_start: number | null
+          odometer_end: number | null
+          fuel_level_start: number | null
+          fuel_level_end: number | null
+          vehicle_capacity_weight: number | null
+          vehicle_capacity_volume: number | null
+
+          // Customs / Shipping
+          gd_number: string | null
+          gd_date: string | null
+          igm_number: string | null
+          ngm_number: string | null
+          index_number: string | null
+          bl_number: string | null
+          shipping_bill_number: string | null
+          container_no: string | null
+          container_size: "20FT" | "40FT" | "40HQ" | "LCL" | null
+          container_type: "DRY" | "REEFER" | "OPEN_TOP" | "FLAT_RACK" | null
+          seal_no: string | null
+          pkg_count: number | null
+          pkg_type: string | null
+          pkg_marks: string | null
+          gross_weight: number | null
+          net_weight: number | null
+          volume_cbm: number | null
+          hs_code: string | null
+          commodity_description: string | null
+          port_of_loading: string | null
+          port_of_discharge: string | null
+          final_destination: string | null
+          vessel_name: string | null
+          voyage_number: string | null
+          shipping_line_name: string | null
+          freight_terms: string | null
+          insurance_details: string | null
+          customs_station_code: string | null
+          clearing_agent_name: string | null
+          clearing_agent_phone: string | null
+          clearing_agent_ntn: string | null
+          consignee_name: string | null
+          consignee_phone: string | null
+          consignee_address: string | null
+          shipper_name: string | null
+          shipper_phone: string | null
+          notify_party: string | null
+          remarks: string | null
+
+          // Trip & Ops
+          trip_id: string | null
+          departure_gate: string | null
+          dispatch_shift: string | null
+          loading_start_time: string | null
+          loading_end_time: string | null
+          handover_time: string | null
+          transit_start_time: string | null
+          transit_stop_time: string | null
+          receiving_start_time: string | null
+          receiving_end_time: string | null
+
+          // Security
+          security_check_status: "PASSED" | "FAILED" | "PENDING" | null
+          security_guard_name: string | null
+          cctv_reference_id: string | null
+          seal_verification_status: string | null
+          seal_broken_reason: string | null
+          high_value_approval_id: string | null
+          police_escort_required: boolean | null
+
+          // Financial
+          carrier_cost: number | null
+          fuel_cost: number | null
+          toll_charges: number | null
+          loading_charges: number | null
+          other_charges: number | null
+
+          // Tracking
+          qr_code: string | null
+          proof_of_handover_url: string | null
+          proof_of_receiving_url: string | null
+
+          [key: string]: any
         }
         Insert: {
           id?: string
-          shipment_id?: string | null
-          carrier_user_id: string
           manifest_number: string
-          vehicle_number: string
-          driver_name: string
-          driver_cnic?: string | null
-          container_numbers?: string[] | null // JSONB in DB, but array in types usually if parsed
-          seal_numbers?: string[] | null
-          gross_weight?: number | null
-          departure_location?: string | null
-          destination_location?: string | null
-          departure_date?: string | null
-          status?: "DRAFT" | "SUBMITTED" | "APPROVED"
+          manifest_type?: "LINEHAUL" | "DELIVERY" | "RTO" | "VENDOR" | "CONTAINER" | null
+          status?: "DRAFT" | "LOADING" | "READY_FOR_HANDOVER" | "HANDED_OVER" | "IN_TRANSIT" | "RECEIVED" | "CLOSED" | "CANCELLED" | "REOPENED" | null
+          origin_hub: string
+          destination_hub: string
+          route_name?: string | null
+          route_code?: string | null
+          dispatch_date_time?: string | null
+          expected_arrival_date_time?: string | null
+          actual_arrival_date_time?: string | null
+          created_by?: string | null
           created_at?: string
-          updated_at?: string
+          updated_at?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          reopen_reason?: string | null
+          reopen_approved_by?: string | null
+          cancel_reason?: string | null
+          cancelled_by?: string | null
+
+          carrier_type?: "OWN_FLEET" | "VENDOR" | "BUS_CARGO" | "AIR" | "3PL" | "SHIPPING_LINE"
+          carrier_name: string
+          carrier_id?: string | null
+          carrier_phone?: string | null
+          carrier_address?: string | null
+
+          driver_name: string
+          driver_cnic: string
+          driver_mobile?: string | null
+          driver_license_no?: string | null
+          driver_license_expiry?: string | null
+          driver_address?: string | null
+          driver_emergency_contact?: string | null
+          helper_name?: string | null
+          helper_cnic?: string | null
+          helper_mobile?: string | null
+          driver_signature_url?: string | null
+          driver_otp_verified?: boolean | null
+
+          vehicle_reg_no: string
+          vehicle_type?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_year?: string | null
+          vehicle_color?: string | null
+          engine_no?: string | null
+          chassis_no?: string | null
+          fitness_cert_no?: string | null
+          fitness_expiry?: string | null
+          vehicle_insurance_company?: string | null
+          vehicle_insurance_expiry?: string | null
+          tracker_id?: string | null
+          odometer_start?: number | null
+          odometer_end?: number | null
+          fuel_level_start?: number | null
+          fuel_level_end?: number | null
+          vehicle_capacity_weight?: number | null
+          vehicle_capacity_volume?: number | null
+
+          gd_number?: string | null
+          gd_date?: string | null
+          igm_number?: string | null
+          ngm_number?: string | null
+          index_number?: string | null
+          bl_number?: string | null
+          shipping_bill_number?: string | null
+          container_no?: string | null
+          container_size?: "20FT" | "40FT" | "40HQ" | "LCL" | null
+          container_type?: "DRY" | "REEFER" | "OPEN_TOP" | "FLAT_RACK" | null
+          seal_no?: string | null
+          pkg_count?: number | null
+          pkg_type?: string | null
+          pkg_marks?: string | null
+          gross_weight?: number | null
+          net_weight?: number | null
+          volume_cbm?: number | null
+          hs_code?: string | null
+          commodity_description?: string | null
+          port_of_loading?: string | null
+          port_of_discharge?: string | null
+          final_destination?: string | null
+          vessel_name?: string | null
+          voyage_number?: string | null
+          shipping_line_name?: string | null
+          freight_terms?: string | null
+          insurance_details?: string | null
+          customs_station_code?: string | null
+          clearing_agent_name?: string | null
+          clearing_agent_phone?: string | null
+          clearing_agent_ntn?: string | null
+          consignee_name?: string | null
+          consignee_phone?: string | null
+          consignee_address?: string | null
+          shipper_name?: string | null
+          shipper_phone?: string | null
+          notify_party?: string | null
+          remarks?: string | null
+
+          trip_id?: string | null
+          departure_gate?: string | null
+          dispatch_shift?: string | null
+          loading_start_time?: string | null
+          loading_end_time?: string | null
+          handover_time?: string | null
+          transit_start_time?: string | null
+          transit_stop_time?: string | null
+          receiving_start_time?: string | null
+          receiving_end_time?: string | null
+
+          security_check_status?: "PASSED" | "FAILED" | "PENDING" | null
+          security_guard_name?: string | null
+          cctv_reference_id?: string | null
+          seal_verification_status?: string | null
+          seal_broken_reason?: string | null
+          high_value_approval_id?: string | null
+          police_escort_required?: boolean | null
+
+          carrier_cost?: number | null
+          fuel_cost?: number | null
+          toll_charges?: number | null
+          loading_charges?: number | null
+          other_charges?: number | null
+
+          qr_code?: string | null
+          proof_of_handover_url?: string | null
+          proof_of_receiving_url?: string | null
+
+          [key: string]: any
         }
         Update: {
           id?: string
-          shipment_id?: string | null
-          carrier_user_id?: string
           manifest_number?: string
-          vehicle_number?: string
-          driver_name?: string
-          driver_cnic?: string | null
-          container_numbers?: string[] | null
-          seal_numbers?: string[] | null
-          gross_weight?: number | null
-          departure_location?: string | null
-          destination_location?: string | null
-          departure_date?: string | null
-          status?: "DRAFT" | "SUBMITTED" | "APPROVED"
-          created_at?: string
-          updated_at?: string
+          status?: "DRAFT" | "LOADING" | "READY_FOR_HANDOVER" | "HANDED_OVER" | "IN_TRANSIT" | "RECEIVED" | "CLOSED" | "CANCELLED" | "REOPENED" | null
+          [key: string]: any
         }
       }
       shipment_documents: {
@@ -107,7 +329,8 @@ export type Database = {
           created_at: string
           eta: string | null
           etd: string | null
-          // Add other fields as needed loosely for now
+          manifest_id: string | null
+          manifest_status: string | null // 'LOADED', 'RECEIVED', 'MISSING', etc.
           [key: string]: any
         }
         Insert: {

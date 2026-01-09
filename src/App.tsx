@@ -74,7 +74,9 @@ import CourierBooking from "./pages/courier/CourierBooking";
 import CourierTracking from "./pages/courier/CourierTracking";
 import CourierManagement from "./pages/courier/CourierManagement";
 import CarrierManifests from "./pages/carrier/CarrierManifests";
-import CreateManifest from "./pages/carrier/CreateManifest";
+import CreateManifestForm from "./pages/carrier/create-wizard/CreateManifestForm";
+import ManifestDetails from "./pages/carrier/ManifestDetails";
+import ToastDemo from "./pages/ToastDemo";
 
 
 
@@ -143,9 +145,11 @@ const App = () => (
 
                   {/* Carrier Module */}
                   <Route path="/carrier/manifests" element={<CarrierManifests />} />
-                  <Route path="/carrier/manifests/create" element={<CreateManifest />} />
+                  <Route path="/carrier/create" element={<CreateManifestForm />} />
+                  <Route path="/carrier/manifests/:id" element={<ManifestDetails />} />
 
-                  {/* Local Trade */}
+                  {/* Demo */}
+                  <Route path="/toast-demo" element={<ToastDemo />} />
                   <Route path="/local/dispatch" element={<Dispatch />} />
                   <Route path="/local/routes" element={<RoutePlanning />} />
                   <Route path="/local/pod" element={<PODManagement />} />
