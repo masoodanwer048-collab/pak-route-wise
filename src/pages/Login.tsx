@@ -12,11 +12,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
-export default function Login() {
+export default function Login({ isCarrier = false }: { isCarrier?: boolean }) {
     const { login } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const from = (location.state as any)?.from?.pathname || '/';
+    const queryParams = new URLSearchParams(location.search);
+    const redirectParam = queryParams.get('redirect');
+    
+    // Default redirects: /carrier/manifests for carrier login, / for others
+    const defaultRedirect = isCarrier ? '/carrier/manifests' : '/';
+    const from = (location.state as any)?.from?.pathname || redirectParam || defaultRedirect;
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -65,14 +70,20 @@ export default function Login() {
                         <img src="/kohesar_logo.png" alt="Kohesar Logistics" className="h-12 w-auto" />
                     </div>
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold tracking-tight text-gray-950 dark:text-white">Logistics Management System</h1>
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Secure Enterprise Access</p>
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
+                            {isCarrier ? "Carrier Portal" : "Logistics Management System"}
+                        </h1>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                            {isCarrier ? "Authorized Carrier Access" : "Secure Enterprise Access"}
+                        </p>
                     </div>
                 </div>
 
                 <Card className="border-t-4 border-t-primary shadow-xl">
                     <CardHeader className="space-y-1">
-                        <CardTitle className="text-2xl text-gray-900 dark:text-white">Sign In</CardTitle>
+                        <CardTitle className="text-2xl text-gray-900 dark:text-white">
+                            {isCarrier ? "Carrier Login" : "Sign In"}
+                        </CardTitle>
                         <CardDescription className="text-gray-600 dark:text-gray-400">
                             Enter your credentials to access your dashboard.
                         </CardDescription>

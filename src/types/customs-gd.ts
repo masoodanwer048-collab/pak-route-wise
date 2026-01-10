@@ -50,6 +50,7 @@ export interface GoodsDeclaration {
     portOfDischarge: string;
     modeOfTransport: string;
     identityOfTransport: string; // Vessel/Flight Name & No
+    rotationNo: string; // Voyage / Rotation No
     blNumber: string;
     blDate: string;
     igmNo: string;
@@ -122,7 +123,8 @@ export const initialGD: GoodsDeclaration = {
     portOfShipment: "Jebel Ali, UAE",
     portOfDischarge: "Port Qasim, PK",
     modeOfTransport: "Sea",
-    identityOfTransport: "MSC AL GHEZA V.22",
+    identityOfTransport: "MSC AL GHEZA",
+    rotationNo: "V.22",
     blNumber: "MSC-12345678",
     blDate: "2023-10-01",
     igmNo: "IGM-2023-445",

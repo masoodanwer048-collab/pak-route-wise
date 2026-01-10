@@ -219,7 +219,9 @@ const navStructure: NavGroup[] = [
         name: 'Finance',
         icon: DollarSign,
         subItems: [
+          { name: 'Dashboard', path: '/finance/dashboard' },
           { name: 'Invoices', path: '/finance/invoices' },
+          { name: 'Expenses', path: '/finance/expenses' },
           { name: 'Duty Payments', path: '/finance/duties' },
           { name: 'Demurrage', path: '/finance/demurrage' },
           { name: 'Reports', path: '/finance/reports' },

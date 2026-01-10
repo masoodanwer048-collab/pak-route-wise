@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +77,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function GDFiling() {
+  const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const {
     gds,
@@ -185,10 +187,12 @@ export default function GDFiling() {
             {selectedGD ? `Edit GD: ${selectedGD.gdNumber}` : 'New Goods Declaration'}
           </h1>
         </div>
-        {/* Pass initial data if we had a full GD object compatible with OfficialGDForm props. 
-                   Since OfficialGDForm manages its own state for now, we render it fresh or with prop injection if supported. 
-                   We will assume OfficialGDForm can be used standalone for now. */}
-        <OfficialGDForm />
+        <OfficialGDForm 
+          initialData={selectedGD}
+          onSaveSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['goods_declarations'] });
+          }}
+        />
       </div>
     );
   }

@@ -1,6 +1,8 @@
 import { Bell, Search, User, HelpCircle, Star, History, Command, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,14 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle, mobileTrigger }: HeaderProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 shadow-sm">
       <div className="flex items-center gap-4 override-mobile-trigger">
@@ -107,9 +117,9 @@ export function Header({ title, subtitle, mobileTrigger }: HeaderProps) {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Admin User</p>
+                <p className="text-sm font-medium leading-none">{user?.fullName || 'Guest User'}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  admin@kohesar.com
+                  {user?.email || 'guest@kohesar.com'}
                 </p>
               </div>
             </DropdownMenuLabel>
@@ -118,7 +128,12 @@ export function Header({ title, subtitle, mobileTrigger }: HeaderProps) {
             <DropdownMenuItem>Billing</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">Log out</DropdownMenuItem>
+            <DropdownMenuItem 
+              className="text-destructive focus:text-destructive cursor-pointer"
+              onClick={handleLogout}
+            >
+              Log out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

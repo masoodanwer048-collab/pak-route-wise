@@ -7,10 +7,17 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
-  if (!user) {
+  // If loading, show nothing (or a spinner) to prevent premature redirect
+  if (isLoading) {
+      return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  // Fallback: Check localStorage if user state is null (race condition safety)
+  const storedUser = localStorage.getItem('demo_user');
+  if (!user && !storedUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -63,6 +70,8 @@ import Invoices from "./pages/finance/Invoices";
 import DutyPayments from "./pages/finance/DutyPayments";
 import Demurrage from "./pages/finance/Demurrage";
 import FinancialReports from "./pages/finance/FinancialReports";
+import FinanceDashboard from "./pages/finance/FinanceDashboard";
+import Expenses from "./pages/finance/Expenses";
 import DocumentsManager from "./pages/compliance/DocumentsManager";
 import CustomsRules from "./pages/compliance/CustomsRules";
 import AuditTrail from "./pages/compliance/AuditTrail";
@@ -74,7 +83,7 @@ import CourierBooking from "./pages/courier/CourierBooking";
 import CourierTracking from "./pages/courier/CourierTracking";
 import CourierManagement from "./pages/courier/CourierManagement";
 import CarrierManifests from "./pages/carrier/CarrierManifests";
-import CreateManifestForm from "./pages/carrier/create-wizard/CreateManifestForm";
+import CreateManifest from "./pages/carrier/CreateManifest";
 import ManifestDetails from "./pages/carrier/ManifestDetails";
 import ToastDemo from "./pages/ToastDemo";
 
@@ -91,7 +100,10 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            {/* Dedicated Carrier Login Route */}
+            <Route path="/carrier/login" element={<Login isCarrier />} />
 
+            <Route path="/carrier" element={<Navigate to="/carrier/login" replace />} />
             <Route path="/*" element={
               <ProtectedRoute>
                 <Routes>
@@ -145,7 +157,7 @@ const App = () => (
 
                   {/* Carrier Module */}
                   <Route path="/carrier/manifests" element={<CarrierManifests />} />
-                  <Route path="/carrier/create" element={<CreateManifestForm />} />
+                  <Route path="/carrier/create" element={<CreateManifest />} />
                   <Route path="/carrier/manifests/:id" element={<ManifestDetails />} />
 
                   {/* Demo */}
@@ -179,7 +191,9 @@ const App = () => (
                   <Route path="/maritime/ports" element={<PortDirectory />} />
 
                   {/* Finance */}
+                  <Route path="/finance/dashboard" element={<FinanceDashboard />} />
                   <Route path="/finance/invoices" element={<Invoices />} />
+                  <Route path="/finance/expenses" element={<Expenses />} />
                   <Route path="/finance/duties" element={<DutyPayments />} />
                   <Route path="/finance/demurrage" element={<Demurrage />} />
                   <Route path="/finance/reports" element={<FinancialReports />} />

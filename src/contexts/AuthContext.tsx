@@ -63,25 +63,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (response.success && response.user) {
                 const { user: appUser, allowedModules: modules, allowedSteps: steps } = response;
 
+                // 1. Persist to LocalStorage synchronously FIRST
+                try {
+                    localStorage.setItem('demo_user', JSON.stringify(appUser));
+                    localStorage.setItem('demo_modules', JSON.stringify(modules || []));
+                    localStorage.setItem('demo_steps', JSON.stringify(steps || []));
+                } catch (e) {
+                    console.error("Failed to save to localStorage", e);
+                }
+
+                // 2. Update React State
                 setUser(appUser);
                 setAllowedModules(modules || []);
                 setAllowedSteps(steps || []);
-
-                // Persist to LocalStorage for persistence on refresh
-                localStorage.setItem('demo_user', JSON.stringify(appUser));
-                localStorage.setItem('demo_modules', JSON.stringify(modules || []));
-                localStorage.setItem('demo_steps', JSON.stringify(steps || []));
 
                 toast.success(`Welcome back, ${appUser.fullName}`);
                 return true;
             } else {
                 console.warn('Login Logic Failure:', response.message);
-                toast.error(`Login Failed: ${response.message || 'Unknown error'}`);
+                toast.error(response.message || 'Login Failed');
                 return false;
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Login exception:', err);
-            toast.error('An unexpected error occurred during login');
+            toast.error(err.message || 'An unexpected error occurred during login');
             return false;
         } finally {
             setIsLoading(false);
