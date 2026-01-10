@@ -1,0 +1,226 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 
+      Kohesar Logistics Brand System 
+      Primary Brand Color: Cyan/Teal (Approx #06b6d4) -> HSL 189 94% 43%
+      Secondary Brand Color: Dark Slate / Gunmetal -> HSL 215 28% 17%
+    */
+
+    /* Base Colors - HIGH CONTRAST */
+    --background: 210 40% 98%;
+    --foreground: 0 0% 0%;
+    /* Pure Black for crisp text */
+
+    /* Card & Popover */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    /* Brand Primary - Kohesar Cyan */
+    --primary: 189 94% 43%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Brand Secondary */
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted / Neutral - Darker for visibility */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 25% 35%;
+    /* Much darker gray for readability */
+
+    /* Accent */
+    --accent: 189 94% 95%;
+    --accent-foreground: 189 94% 30%;
+
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Borders & Inputs */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 189 94% 43%;
+
+    --radius: 0.5rem;
+
+    /* Semantic Colors */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --pending: 262 83% 58%;
+    --pending-foreground: 0 0% 100%;
+
+    /* Sidebar Theme - Dark Professional */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 189 94% 43%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 189 94% 43%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(189 94% 43%) 0%, hsl(190 100% 35%) 100%);
+    --gradient-dark: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(222 47% 18%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 40% 99%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 15px hsl(189 94% 43% / 0.4);
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 0 0% 100%;
+    /* Pure White */
+
+    --card: 222 47% 10%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 189 94% 43%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 85%;
+    /* Much brighter gray */
+
+    --accent: 189 94% 15%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 189 94% 43%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography System */
+  h1 {
+    @apply text-3xl font-bold tracking-tight lg:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl font-bold tracking-tight;
+  }
+
+  h3 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  h4 {
+    @apply text-lg font-semibold tracking-tight;
+  }
+
+  p {
+    @apply leading-7 [&:not(:first-child)]:mt-6;
+  }
+
+  small {
+    @apply text-sm font-medium leading-none;
+  }
+}
+
+@layer components {
+
+  /* Cards */
+  .stat-card {
+    @apply relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 p-6;
+  }
+
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-lg border border-white/20 shadow-xl;
+  }
+
+  /* Navigation */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 select-none cursor-pointer;
+  }
+
+  .nav-item:hover {
+    @apply bg-sidebar-accent text-sidebar-foreground;
+  }
+
+  .nav-item-active {
+    @apply bg-primary text-primary-foreground shadow-glow;
+  }
+
+  /* Tables */
+  .data-table-container {
+    @apply rounded-md border shadow-sm bg-card;
+  }
+
+  .data-table {
+    @apply w-full caption-bottom text-sm;
+  }
+
+  .data-table thead tr {
+    @apply border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted;
+  }
+
+  .data-table th {
+    @apply h-12 px-4 text-left align-middle font-medium text-muted-foreground bg-muted/30;
+  }
+
+  .data-table td {
+    @apply p-4 align-middle [&:has([role=checkbox])]:pr-0 border-b border-border/50;
+  }
+
+  .data-table tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .data-table tr:hover {
+    @apply bg-muted/40;
+  }
+
+  /* Utils */
+  .animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@layer utilities {
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
