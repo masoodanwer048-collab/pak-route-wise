@@ -337,8 +337,8 @@ const CreateManifest = () => {
                 ...values,
                 status: isSubmit ? "SUBMITTED" : (values.status || "DRAFT"),
                 manifest_number: values.manifest_number || `MAN-${format(new Date(), "yyyyMMdd")}-${Math.floor(Math.random() * 1000)}`,
-                created_by: userId,
-                carrier_user_id: userId, // Add carrier_user_id for logged in users
+                created_by: safeCarrierUserId,
+                carrier_user_id: safeCarrierUserId, // Null if mock user to avoid FK error
                 updated_at: new Date().toISOString(),
                 submitted_by: isSubmit ? userId : null,
                 submitted_at: isSubmit ? new Date().toISOString() : null,
