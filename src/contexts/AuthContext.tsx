@@ -102,32 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (email: string, pass: string): Promise<boolean> => {
         setIsLoading(true);
+        console.log('Attempting login with:', { email }); // Debug Log
 
-        // FORCE MOCK FOR DEMO ACCOUNTS
-        if (MOCK_USERS[email.toLowerCase()]) {
-            console.log('Demo bypass active');
-            const response = getMockAuth(email, pass);
-            if (response.success && response.user) {
-                const { user: appUser, allowedModules: modules, allowedSteps: steps } = response;
-
-                // CRITICAL: Persist to LocalStorage for ProtectedRoute
-                try {
-                    localStorage.setItem('demo_user', JSON.stringify(appUser));
-                    localStorage.setItem('demo_modules', JSON.stringify(modules || []));
-                    localStorage.setItem('demo_steps', JSON.stringify(steps || []));
-                } catch (e) {
-                    console.error("Mock saving failed", e);
-                }
-
-                setUser(appUser);
-                setAllowedModules(modules || []);
-                setAllowedSteps(steps || []);
-                toast.success(`Welcome back, ${appUser.fullName} (Demo Mode)`);
-                setIsLoading(false);
-                return true;
-            }
-        }
-        console.log('Attempting login with:', { email, pass }); // Debug Log
         // Clear any existing session data first
         localStorage.removeItem('demo_user');
         localStorage.removeItem('demo_modules');
@@ -137,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let usedMock = false;
 
         try {
-            // Call Supabase RPC
+            // 1. Attempt Real Backend Login First
             // @ts-ignore
             const { data, error } = await supabase.rpc('demo_login', {
                 p_email: email,
@@ -146,27 +122,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (error) {
                 console.warn('Login RPC error, attempting fallback:', error);
-                usedMock = true;
-                response = getMockAuth(email, pass);
+                throw error; // Trigger catch to try mock
             } else {
                 response = data as AuthResponse;
 
                 // If RPC succeeded but returned logical failure (e.g. User not found), try mock
                 if (!response.success) {
                     console.warn('Backend rejected login (' + response.message + '), checking mock users...');
-                    const mockResponse = getMockAuth(email, pass);
-                    if (mockResponse.success) {
-                        console.log('Found valid mock user, overriding backend failure.');
-                        response = mockResponse;
-                        usedMock = true;
-                    }
+                    throw new Error(response.message); // Trigger catch to try mock
                 }
             }
 
         } catch (err) {
-            console.warn('Login exception, attempting fallback:', err);
-            usedMock = true;
-            response = getMockAuth(email, pass);
+            console.warn('Real login failed, checking for Demo/Mock fallback...', err);
+
+            // 2. Fallback to Mock if Real Login fails
+            if (MOCK_USERS[email.toLowerCase()]) {
+                console.log('Found valid mock user, using fallback data.');
+                response = getMockAuth(email, pass);
+                usedMock = true;
+            } else {
+                // Not a mock user, and real login failed
+                toast.error('Login Failed: ' + (err as any)?.message || 'Unknown error');
+                setIsLoading(false);
+                return false;
+            }
         }
 
         try {
@@ -175,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (response && response.success && response.user) {
                 const { user: appUser, allowedModules: modules, allowedSteps: steps } = response;
 
-                // 1. Persist to LocalStorage synchronously FIRST
+                // 3. Persist to LocalStorage synchronously FIRST
                 try {
                     localStorage.setItem('demo_user', JSON.stringify(appUser));
                     localStorage.setItem('demo_modules', JSON.stringify(modules || []));
