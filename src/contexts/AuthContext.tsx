@@ -94,9 +94,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const storedSteps = localStorage.getItem('demo_steps');
 
         if (storedUser && storedModules && storedSteps) {
-            setUser(JSON.parse(storedUser));
-            setAllowedModules(JSON.parse(storedModules));
-            setAllowedSteps(JSON.parse(storedSteps));
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                // CLEANUP: If user has old "mock-" ID, force logout to get new UUID
+                if (parsedUser.id && String(parsedUser.id).startsWith('mock-')) {
+                    console.warn('Detected stale mock ID, clearing session.');
+                    localStorage.removeItem('demo_user');
+                    localStorage.removeItem('demo_modules');
+                    localStorage.removeItem('demo_steps');
+                    toast.info('Session updated. Please login again.');
+                    return;
+                }
+
+                setUser(parsedUser);
+                setAllowedModules(JSON.parse(storedModules));
+                setAllowedSteps(JSON.parse(storedSteps));
+            } catch (e) {
+                console.error('Error parsing stored session', e);
+                localStorage.removeItem('demo_user');
+            }
         }
     }, []);
 
