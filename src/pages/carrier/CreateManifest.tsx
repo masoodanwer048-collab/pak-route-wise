@@ -333,6 +333,11 @@ const CreateManifest = () => {
                 }
             }
 
+            // --- FK SAFETY FIX ---
+            const isMockUser = Object.values(MOCK_USERS).some(u => u.id === userId);
+            const safeCarrierUserId = isMockUser ? null : userId;
+            console.log(`User ID: ${userId}, Is Mock: ${isMockUser}, Safe ID: ${safeCarrierUserId}`);
+
             const rawPayload = {
                 ...values,
                 status: isSubmit ? "SUBMITTED" : (values.status || "DRAFT"),
