@@ -127,7 +127,7 @@ const CORE_DB_COLUMNS = [
 ];
 
 const EXTENDED_DB_COLUMNS = [
-    "driver_name", "driver_cnic", "driver_mobile", "driver_license_no", 
+    "driver_name", "driver_cnic", "driver_mobile", "driver_license_no",
     "driver_license_expiry", "driver_address", "driver_emergency_contact",
     "vehicle_reg_no", "vehicle_type", "vehicle_make", "vehicle_model", "vehicle_year",
     "engine_no", "chassis_no", "vehicle_insurance_expiry", "tracker_id",
@@ -166,30 +166,30 @@ const CreateManifest = () => {
             route_name: "",
             expected_arrival_date_time: "",
             remarks: "",
-            
+
             driver_name: "", driver_cnic: "", driver_mobile: "",
             driver_license_no: "", driver_license_expiry: "",
             driver_address: "", driver_emergency_contact: "",
-            
+
             vehicle_reg_no: "", vehicle_type: "",
             vehicle_make: "", vehicle_model: "", vehicle_year: "",
             engine_no: "", chassis_no: "",
             vehicle_insurance_expiry: "", tracker_id: "",
             carrier_name: "", carrier_phone: "",
-            
+
             gd_number: "", gd_date: "",
             igm_number: "", ngm_number: "", index_number: "",
             bl_number: "", shipping_bill_number: "",
             container_no: "", container_size: "", container_type: "",
             seal_no: "",
-            
+
             vessel_name: "", voyage_number: "",
             port_of_loading: "", port_of_discharge: "",
-            
+
             pkg_count: 0, pkg_type: "",
             gross_weight: 0, net_weight: 0, volume_cbm: 0,
             commodity_description: "", hs_code: "",
-            
+
             consignee_name: "", consignee_phone: "", consignee_address: "",
             shipper_name: "", shipper_phone: "",
             clearing_agent_name: "", clearing_agent_phone: "", clearing_agent_ntn: ""
@@ -206,7 +206,7 @@ const CreateManifest = () => {
         if (params.get("action") === "submit") {
             params.delete("action");
             navigate({ search: params.toString() }, { replace: true });
-            
+
             setTimeout(() => {
                 const storedUser = localStorage.getItem('demo_user');
                 if (storedUser) {
@@ -227,14 +227,14 @@ const CreateManifest = () => {
 
             if (error) throw error;
             if (data) {
-                const formattedDate = data.dispatch_date_time 
-                    ? format(new Date(data.dispatch_date_time), "yyyy-MM-dd'T'HH:mm") 
+                const formattedDate = data.dispatch_date_time
+                    ? format(new Date(data.dispatch_date_time), "yyyy-MM-dd'T'HH:mm")
                     : format(new Date(), "yyyy-MM-dd'T'HH:mm");
-                
-                const formattedArrival = data.expected_arrival_date_time 
-                    ? format(new Date(data.expected_arrival_date_time), "yyyy-MM-dd'T'HH:mm") 
+
+                const formattedArrival = data.expected_arrival_date_time
+                    ? format(new Date(data.expected_arrival_date_time), "yyyy-MM-dd'T'HH:mm")
                     : "";
-                
+
                 const formattedGDDate = data.gd_date
                     ? format(new Date(data.gd_date), "yyyy-MM-dd")
                     : "";
@@ -260,7 +260,7 @@ const CreateManifest = () => {
     const sanitizePayload = (values: any, useExtended: boolean = true) => {
         const clean: any = {};
         const allowedColumns = useExtended ? [...CORE_DB_COLUMNS, ...EXTENDED_DB_COLUMNS] : CORE_DB_COLUMNS;
-        
+
         Object.keys(values).forEach(key => {
             if (allowedColumns.includes(key)) {
                 if (values[key] === "") {
@@ -313,7 +313,7 @@ const CreateManifest = () => {
                 const missingFields = [];
                 if (!values.vehicle_reg_no) missingFields.push("Vehicle Registration No");
                 if (!values.driver_name) missingFields.push("Driver Name");
-                
+
                 if (missingFields.length > 0) {
                     toast.error(`${missingFields.join(" & ")} required to submit.`);
                     setLoading(false);
@@ -324,20 +324,20 @@ const CreateManifest = () => {
 
             // Ensure Created By is valid text or null
             let userId = currentUser?.id ? String(currentUser.id) : null;
-            
+
             // Fallback for demo users
             if (!userId) {
-                 const storedUser = localStorage.getItem('demo_user');
-                 if (storedUser) {
-                     userId = JSON.parse(storedUser).id;
-                 }
+                const storedUser = localStorage.getItem('demo_user');
+                if (storedUser) {
+                    userId = JSON.parse(storedUser).id;
+                }
             }
 
             const rawPayload = {
                 ...values,
                 status: isSubmit ? "SUBMITTED" : (values.status || "DRAFT"),
                 manifest_number: values.manifest_number || `MAN-${format(new Date(), "yyyyMMdd")}-${Math.floor(Math.random() * 1000)}`,
-                created_by: userId, 
+                created_by: userId,
                 carrier_user_id: userId, // Add carrier_user_id for logged in users
                 updated_at: new Date().toISOString(),
                 submitted_by: isSubmit ? userId : null,
@@ -360,33 +360,35 @@ const CreateManifest = () => {
                 saveSuccess = true;
             } catch (fullError: any) {
                 console.warn("Full save failed, attempting minimal save...", fullError);
-                
+
                 // Check if error is related to missing columns
                 if (fullError.message?.includes("Could not find the") || fullError.code === "42703") { // 42703 is undefined_column
-                     // Attempt 2: Minimal Save (Core Fields Only)
-                     const corePayload = sanitizePayload(rawPayload, false);
-                     console.log("Attempting Minimal Save...", corePayload);
-                     manifestId = await saveToSupabase(corePayload, editId);
-                     saveSuccess = true;
-                     toast.warning("Manifest saved with basic details only. Please ask admin to run migration script.");
+                    // Attempt 2: Minimal Save (Core Fields Only)
+                    const corePayload = sanitizePayload(rawPayload, false);
+                    console.log("Attempting Minimal Save...", corePayload);
+                    manifestId = await saveToSupabase(corePayload, editId);
+                    saveSuccess = true;
+                    toast.warning("Manifest saved with basic details only. Please ask admin to run migration script.");
                 } else {
                     throw fullError; // Re-throw other errors (auth, etc.)
                 }
             }
 
             if (saveSuccess) {
-                 toast.success(isSubmit ? "Manifest Submitted Successfully" : "Manifest Saved Successfully");
-                 if (manifestId) {
-                     navigate(`/carrier/manifests/${manifestId}`);
-                 } else {
-                     navigate("/carrier/manifests");
-                 }
+                toast.success(isSubmit ? "Manifest Submitted Successfully" : "Manifest Saved Successfully");
+                if (manifestId) {
+                    navigate(`/carrier/manifests/${manifestId}`);
+                } else {
+                    navigate("/carrier/manifests");
+                }
             }
 
         } catch (error: any) {
             console.error("Error saving manifest:", error);
             if (error.message?.includes("JWT")) {
                 toast.error("Session expired. Please login again.");
+            } else if (error.message?.includes("Failed to fetch")) {
+                toast.error("Network Error: Unable to connect to server. Please check your internet connection or URL configuration.");
             } else {
                 toast.error(`Error: ${error.message || "Unable to save manifest"}`);
             }
@@ -399,7 +401,6 @@ const CreateManifest = () => {
     return (
         <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
             <div className="flex flex-col items-center justify-center border-b pb-6 space-y-2">
-                <img src="/kohesar_logo.png" alt="Kohsar Logistics" className="h-16 w-auto object-contain" />
                 <div className="text-center">
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">KOHSAR LOGISTICS (PRIVATE) LIMITED</h1>
                     <p className="text-sm font-medium text-slate-500 italic">"KEEP THE LORD ON THE ROAD"</p>
@@ -421,14 +422,14 @@ const CreateManifest = () => {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button 
-                        variant="outline" 
+                    <Button
+                        variant="outline"
                         onClick={form.handleSubmit((v) => handleSave(v, false))}
                         disabled={loading}
                     >
                         <Save className="mr-2 h-4 w-4" /> Save Draft
                     </Button>
-                    <Button 
+                    <Button
                         onClick={form.handleSubmit((v) => handleSave(v, true))}
                         disabled={loading}
                         className="bg-slate-900 text-white hover:bg-slate-800"
@@ -604,8 +605,8 @@ const CreateManifest = () => {
                             </AccordionTrigger>
                             <AccordionContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
 // No changes needed as inputs are already editable.
-// The previous issue was likely perceived due to UI layout or missing values.
-// I will ensure all GD fields are explicitly mapped and standard Inputs.
+                                // The previous issue was likely perceived due to UI layout or missing values.
+                                // I will ensure all GD fields are explicitly mapped and standard Inputs.
 
                                 <FormField control={form.control} name="gd_number" render={({ field }) => (
                                     <FormItem><FormLabel>GD Number</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
@@ -628,7 +629,7 @@ const CreateManifest = () => {
                                 <FormField control={form.control} name="shipping_bill_number" render={({ field }) => (
                                     <FormItem><FormLabel>Shipping Bill No</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
                                 )} />
-                                
+
                                 <div className="col-span-full border-t pt-4 mt-2 mb-2"><h4 className="font-semibold text-sm text-slate-500">Container Details</h4></div>
 
                                 <FormField control={form.control} name="container_no" render={({ field }) => (

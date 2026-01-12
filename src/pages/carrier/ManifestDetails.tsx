@@ -55,7 +55,7 @@ const ManifestDetails = () => {
 
     const exportExcel = () => {
         if (!manifest) return;
-        
+
         // Sheet 1: Summary
         const summaryData = [
             { "Field": "Manifest Number", "Value": manifest.manifest_number },
@@ -79,14 +79,14 @@ const ManifestDetails = () => {
         const itemsData = [
             { "Item No": "1", "Description": manifest.commodity_description, "Qty": manifest.pkg_count, "Weight": manifest.gross_weight }
         ];
-        
+
         const wb = XLSX.utils.book_new();
         const wsSummary = XLSX.utils.json_to_sheet(summaryData);
         const wsItems = XLSX.utils.json_to_sheet(itemsData);
 
         XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
         XLSX.utils.book_append_sheet(wb, wsItems, "Shipments");
-        
+
         XLSX.writeFile(wb, `Manifest_${manifest.manifest_number}.xlsx`);
     };
 
@@ -104,7 +104,6 @@ const ManifestDetails = () => {
         <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
             {/* Branding Header */}
             <div className="flex flex-col items-center justify-center border-b pb-6 space-y-2">
-                <img src="/kohesar_logo.png" alt="Kohsar Logistics" className="h-16 w-auto object-contain" />
                 <div className="text-center">
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">KOHSAR LOGISTICS (PRIVATE) LIMITED</h1>
                     <p className="text-sm font-medium text-slate-500 italic">"KEEP THE LORD ON THE ROAD"</p>

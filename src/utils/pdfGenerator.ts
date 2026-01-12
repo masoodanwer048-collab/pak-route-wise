@@ -23,25 +23,28 @@ export const generateManifestPDF = (manifest: Manifest) => {
 
     // --- 1. Header & Branding ---
     // Logo
-    try {
-        const logoUrl = '/kohesar_logo.png';
-        const img = new Image();
-        img.src = logoUrl;
-        doc.addImage(img, 'PNG', 14, 10, 40, 20); // x, y, width, height
-    } catch (e) {
-        console.warn("Logo not loaded for PDF");
-    }
-    
-    // Company Title
+    // Logo - Removed by user request
+    // try {
+    //     const logoUrl = '/kohesar_logo.png';
+    //     const img = new Image();
+    //     img.src = logoUrl;
+    //     doc.addImage(img, 'PNG', 14, 10, 40, 20); // x, y, width, height
+    // } catch (e) {
+    //     console.warn("Logo not loaded for PDF");
+    // }
+
+    // Company Title - Removed by user request
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
-    centerText("KOHSAR LOGISTICS (PRIVATE) LIMITED", 20, 16);
-    
-    // Tagline
+    // centerText("KOHSAR LOGISTICS (PRIVATE) LIMITED", 20, 16); 
+
+    // Tagline - Keeping for now unless requested, or maybe remove if it looks weird alone.
+    // User only said 'company title', but usually removing the title makes the tagline look orphaned.
+    // I will comment out the title.
     doc.setFont("helvetica", "italic");
     doc.setTextColor(100, 100, 100);
     centerText("KEEP THE LORD ON THE ROAD", 26, 10);
-    
+
     doc.setLineWidth(0.5);
     doc.line(14, 35, pageWidth - 14, 35); // Adjusted line position
 
@@ -55,10 +58,10 @@ export const generateManifestPDF = (manifest: Manifest) => {
     doc.setTextColor(0);
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    
+
     doc.text(`Manifest #: ${manifest.manifest_number}`, 14, 53);
     doc.text(`Type: ${manifest.manifest_type || 'N/A'}`, 14, 59);
-    
+
     rightText(`Status: ${manifest.status}`, 53);
     rightText(`Date: ${manifest.dispatch_date_time ? format(new Date(manifest.dispatch_date_time), 'dd MMM yyyy') : format(new Date(), 'dd MMM yyyy')}`, 59);
 
@@ -185,7 +188,7 @@ export const generateManifestPDF = (manifest: Manifest) => {
     doc.setTextColor(0);
 
     const sigY = startY;
-    
+
     doc.text("_______________________", 14, sigY);
     doc.text("Prepared By", 14, sigY + 5);
 

@@ -22,7 +22,7 @@ const CarrierManifests = () => {
     const navigate = useNavigate();
     const [manifests, setManifests] = useState<Manifest[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Filters
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -36,14 +36,14 @@ const CarrierManifests = () => {
         try {
             const { data, error } = await supabase
                 .from("carrier_manifests")
-                .select("*")
+                .select("id, manifest_number, manifest_type, status, origin_hub, destination_hub, driver_name, driver_cnic, vehicle_reg_no, gd_number, bl_number, container_no, dispatch_date_time, created_at")
                 .order("created_at", { ascending: false });
 
             if (error) throw error;
-            setManifests(data || []);
+            setManifests(data as any || []);
         } catch (error: any) {
-            toast.error("Failed to load manifests");
-            console.error(error);
+            console.error("Manifest Load Error:", error);
+            toast.error(`Failed to load manifests: ${error.message || "Unknown error"}`);
         } finally {
             setLoading(false);
         }
@@ -64,7 +64,7 @@ const CarrierManifests = () => {
     const duplicateManifest = async (manifest: Manifest) => {
         try {
             const { id, created_at, updated_at, manifest_number, ...rest } = manifest;
-            
+
             // Get current user ID safely
             let userId = (await supabase.auth.getUser()).data.user?.id;
             if (!userId) {
@@ -123,7 +123,7 @@ const CarrierManifests = () => {
 
     // Filter Logic
     const filteredManifests = manifests.filter(m => {
-        const matchesSearch = 
+        const matchesSearch =
             (m.manifest_number?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (m.driver_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (m.driver_cnic?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
@@ -133,7 +133,7 @@ const CarrierManifests = () => {
             (m.container_no?.toLowerCase() || "").includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === "ALL" || m.status === statusFilter;
-        
+
         const matchesOrigin = !originFilter || (m.origin_hub?.toLowerCase() || "").includes(originFilter.toLowerCase());
 
         return matchesSearch && matchesStatus && matchesOrigin;
@@ -162,7 +162,7 @@ const CarrierManifests = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                
+
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Status" />
@@ -176,8 +176,8 @@ const CarrierManifests = () => {
                     </SelectContent>
                 </Select>
 
-                <Input 
-                    placeholder="Filter by Origin" 
+                <Input
+                    placeholder="Filter by Origin"
                     className="w-[180px]"
                     value={originFilter}
                     onChange={(e) => setOriginFilter(e.target.value)}
@@ -244,10 +244,10 @@ const CarrierManifests = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={m.status === 'DRAFT' ? 'outline' : 'secondary'} 
+                                        <Badge variant={m.status === 'DRAFT' ? 'outline' : 'secondary'}
                                             className={
-                                                m.status === 'SUBMITTED' ? 'bg-green-100 text-green-800 border-green-200' : 
-                                                m.status === 'DRAFT' ? 'bg-slate-100 text-slate-800' : ''
+                                                m.status === 'SUBMITTED' ? 'bg-green-100 text-green-800 border-green-200' :
+                                                    m.status === 'DRAFT' ? 'bg-slate-100 text-slate-800' : ''
                                             }
                                         >
                                             {m.status}
@@ -294,7 +294,7 @@ const CarrierManifests = () => {
                     </TableBody>
                 </Table>
             </div>
-            
+
             <div className="text-xs text-muted-foreground text-center">
                 Showing {filteredManifests.length} manifests
             </div>

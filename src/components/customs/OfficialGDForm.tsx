@@ -200,14 +200,14 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                 // weboc_ref: gd.webocRef, // DISABLED AGAIN: Schema cache is not updating.
                 customs_station: gd.station,
                 // collectorate: gd.collectorate, // DISABLED AGAIN: Schema cache is not updating.
-                
+
                 // Use explicit column names that match DB schema
                 exporter: { name: gd.exporterName, address: gd.exporterAddress },
                 importer: { name: gd.importerName, address: gd.importerAddress, ntn: gd.ntn, strn: gd.strn },
                 agent: { name: gd.agentName, address: gd.agentAddress, chal_no: gd.chalNo },
-                
+
                 pages: gd.pages,
-                
+
                 shipment_details: {
                     country_of_origin: gd.countryOfOrigin,
                     country_of_consignment: gd.countryOfConsignment,
@@ -222,7 +222,7 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                     igm_date: gd.igmDate,
                     index_no: gd.indexNo
                 },
-                
+
                 cargo_details: {
                     gross_weight: gd.grossWeight,
                     net_weight: gd.netWeight,
@@ -231,7 +231,7 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                     marks: gd.marksAndNumbers,
                     location: gd.locationOfGoods
                 },
-                
+
                 valuation_details: {
                     delivery_term: gd.deliveryTerm,
                     currency: gd.currencyCode,
@@ -245,14 +245,14 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                     landing_charges: gd.landingCharges,
                     total_declared_value: gd.totalDeclaredValue
                 },
-                
+
                 items: gd.items,
-                
+
                 total_customs_duty: gd.totalCustomsDuty,
                 total_sales_tax: gd.totalSalesTax,
                 total_regulatory_duty: gd.totalRegulatoryDuty,
                 total_taxes: gd.totalTaxes,
-                
+
                 examiner_remarks: gd.examinerRemarks,
                 declarant_name: gd.declarantName,
                 declarant_cnic: gd.cnic
@@ -260,7 +260,7 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
 
             // Payload Sanitizer: Move unknown keys to 'extra_data'
             const finalPayload: any = { extra_data: {} };
-            
+
             Object.keys(rawPayload).forEach(key => {
                 if (knownColumns.includes(key)) {
                     finalPayload[key] = rawPayload[key];
@@ -272,44 +272,44 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
 
             // Clean up undefined
             Object.keys(finalPayload).forEach(key => finalPayload[key] === undefined && delete finalPayload[key]);
-            
+
             console.log("Sanitized Payload:", finalPayload);
-            
+
             const { error } = await supabase.from('goods_declarations').insert(finalPayload);
-            
+
             if (error) throw error;
 
-            toast({ 
-                title: isSubmit ? "GD Submitted" : "Draft Saved", 
-                description: "Goods Declaration saved successfully." 
+            toast({
+                title: isSubmit ? "GD Submitted" : "Draft Saved",
+                description: "Goods Declaration saved successfully."
             });
-            
+
             setIsEditMode(false);
             if (onSaveSuccess) onSaveSuccess();
 
         } catch (error: any) {
             console.error("Error saving GD:", error);
-            toast({ 
+            toast({
                 variant: "destructive",
-                title: "Error", 
-                description: error.message || "Failed to save GD" 
+                title: "Error",
+                description: error.message || "Failed to save GD"
             });
         } finally {
             setIsLoading(false);
         }
     };
 
-    const InputField = ({ 
-        value, 
-        onChange, 
-        className = "", 
-        type = "text", 
+    const InputField = ({
+        value,
+        onChange,
+        className = "",
+        type = "text",
         placeholder = "",
-        readOnly = false 
-    }: { 
-        value: any, 
-        onChange?: (val: string) => void, 
-        className?: string, 
+        readOnly = false
+    }: {
+        value: any,
+        onChange?: (val: string) => void,
+        className?: string,
         type?: string,
         placeholder?: string,
         readOnly?: boolean
@@ -318,10 +318,10 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
             return <div className={`gd-input truncate ${className} px-1 py-0.5`}>{value}</div>;
         }
         return (
-            <input 
-                className={`gd-input ${className}`} 
-                value={value} 
-                onChange={e => onChange && onChange(e.target.value)} 
+            <input
+                className={`gd-input ${className}`}
+                value={value}
+                onChange={e => onChange && onChange(e.target.value)}
                 type={type}
                 placeholder={placeholder}
                 readOnly={readOnly}
@@ -336,17 +336,17 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                 <div className="flex items-center gap-4">
                     <h2 className="text-xl font-bold text-gray-800">Goods Declaration (GD)</h2>
                     <div className="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
-                        <Button 
-                            variant={isEditMode ? "secondary" : "ghost"} 
-                            size="sm" 
+                        <Button
+                            variant={isEditMode ? "secondary" : "ghost"}
+                            size="sm"
                             onClick={() => setIsEditMode(false)}
                             className={!isEditMode ? "bg-white shadow-sm" : ""}
                         >
                             <Eye className="h-4 w-4 mr-2" /> View
                         </Button>
-                        <Button 
-                            variant={isEditMode ? "ghost" : "secondary"} 
-                            size="sm" 
+                        <Button
+                            variant={isEditMode ? "ghost" : "secondary"}
+                            size="sm"
                             onClick={() => setIsEditMode(true)}
                             className={isEditMode ? "bg-white shadow-sm" : ""}
                         >
@@ -398,8 +398,8 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
 
                 {/* Logo Section - Visible in Print & View */}
                 <div className="flex flex-col items-center justify-center mb-4 pt-2">
-                    <img src="/kohesar_logo.png" alt="Kohsar Logistics" className="h-16 object-contain mb-1" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                    <h2 className="text-lg font-bold text-black hidden print:block">KOHSAR LOGISTICS (PRIVATE) LIMITED</h2>
+                    {/* <img src="/kohesar_logo.png" alt="Kohsar Logistics" className="h-16 object-contain mb-1" onError={(e) => (e.currentTarget.style.display = 'none')} /> */}
+                    {/* <h2 className="text-lg font-bold text-black hidden print:block">KOHSAR LOGISTICS (PRIVATE) LIMITED</h2> */}
                     <p className="text-[10px] italic text-gray-600 hidden print:block">KEEP THE LORD ON THE ROAD</p>
                 </div>
 
@@ -536,7 +536,7 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                     </div>
                     <div className="gd-cell">
                         <label className="gd-label">Rotation / Voyage No</label>
-                        <InputField value={gd.rotationNo} onChange={v => setGD({ ...gd, rotationNo: v })} /> 
+                        <InputField value={gd.rotationNo} onChange={v => setGD({ ...gd, rotationNo: v })} />
                     </div>
                 </div>
 
