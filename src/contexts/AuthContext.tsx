@@ -37,7 +37,7 @@ const MOCK_STEPS_CONFIG = [
     { key: 'gate_pass', stage: 4 }, { key: 'final_loading', stage: 4 }, { key: 'transport_dest', stage: 4 }
 ];
 
-const MOCK_USERS: Record<string, AppUser & { password: string }> = {
+export const MOCK_USERS: Record<string, AppUser & { password: string }> = {
     'shipping@demo.com': { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'shipping@demo.com', fullName: 'Shipping Agent', role: 'shipping_agent', password: 'Demo@1234' },
     'clearing@demo.com': { id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b22', email: 'clearing@demo.com', fullName: 'Clearing Agent', role: 'clearing_agent', password: 'Demo@1234' },
     'transport@demo.com': { id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380c33', email: 'transport@demo.com', fullName: 'Transport Admin', role: 'transport_agent', password: 'Demo@1234' },
