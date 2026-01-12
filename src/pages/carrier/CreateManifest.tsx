@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, MOCK_USERS } from "@/contexts/AuthContext";
 
 // UI Components
 import { Button } from "@/components/ui/button";
