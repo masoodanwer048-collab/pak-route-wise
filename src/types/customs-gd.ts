@@ -17,6 +17,7 @@ export interface GDItem {
 }
 
 export interface GoodsDeclaration {
+    id?: string;
     // Header
     gdNumber: string;
     gdType: GDType;
@@ -97,7 +98,7 @@ export interface GoodsDeclaration {
 }
 
 export const initialGD: GoodsDeclaration = {
-    gdNumber: "KPKI-IM-2023-00001",
+    gdNumber: "",
     gdType: "Import",
     station: "Port Qasim",
     collectorate: "MCC Appraisement East",

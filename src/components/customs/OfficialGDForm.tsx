@@ -19,15 +19,18 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
     const [gd, setGD] = useState<GoodsDeclaration>(initialGD);
     const [isEditMode, setIsEditMode] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    const [recordId, setRecordId] = useState<string | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
     useEffect(() => {
         if (initialData) {
             setGD(initialData);
+            setRecordId(initialData.id || null);
             setIsEditMode(false); // Default to view mode for existing
         } else {
             setGD(initialGD);
+            setRecordId(null);
             setIsEditMode(true); // Default to edit mode for new
         }
     }, [initialData]);
@@ -176,8 +179,43 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
     };
 
     const handleSave = async (isSubmit: boolean = false) => {
+        if (isLoading) return; // Prevent double submission
+
+        if (!gd.gdNumber) {
+            toast({
+                variant: "destructive",
+                title: "Required Information",
+                description: "Please enter a GD Number before saving."
+            });
+            return;
+        }
+
         setIsLoading(true);
         try {
+            // 1. Check for duplicate GD Number if it's a new record
+            // Or if the GD number has changed on an existing record
+            const isNew = !recordId;
+
+            // Query to see if this GD number exists already
+            const { data: existingGD, error: checkError } = await supabase
+                .from('goods_declarations')
+                .select('id, gd_number')
+                .eq('gd_number', gd.gdNumber)
+                .maybeSingle();
+
+            if (checkError) throw checkError;
+
+            // If it exists and it's not the one we are currently editing
+            if (existingGD && (existingGD as any).id !== recordId) {
+                toast({
+                    variant: "destructive",
+                    title: "Duplicate GD No",
+                    description: `GD No "${gd.gdNumber}" already exists in the system. Please use a unique GD No or update the existing one.`
+                });
+                setIsLoading(false);
+                return;
+            }
+
             // Define the whitelist of known columns in DB
             const knownColumns = [
                 'id', 'created_at', 'updated_at',
@@ -188,20 +226,18 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                 'shipment_details', 'cargo_details', 'valuation_details', 'items',
                 'total_customs_duty', 'total_sales_tax', 'total_regulatory_duty', 'total_taxes',
                 'examiner_remarks', 'declarant_name', 'declarant_cnic',
-                'extra_data' // The safety net
+                'extra_data'
             ];
 
             // Initial payload with all intended data
             const rawPayload: any = {
+                id: recordId, // Include ID for upsert
                 gd_number: gd.gdNumber,
-                gd_type: gd.gdType.toLowerCase(), // Convert to lowercase to match potential enum
-                status: isSubmit ? 'submitted' : 'draft', // Lowercase status enum
+                gd_type: gd.gdType.toLowerCase(),
+                status: isSubmit ? 'submitted' : 'draft',
                 filing_date: gd.filingDate,
-                // weboc_ref: gd.webocRef, // DISABLED AGAIN: Schema cache is not updating.
                 customs_station: gd.station,
-                // collectorate: gd.collectorate, // DISABLED AGAIN: Schema cache is not updating.
 
-                // Use explicit column names that match DB schema
                 exporter: { name: gd.exporterName, address: gd.exporterAddress },
                 importer: { name: gd.importerName, address: gd.importerAddress, ntn: gd.ntn, strn: gd.strn },
                 agent: { name: gd.agentName, address: gd.agentAddress, chal_no: gd.chalNo },
@@ -258,26 +294,40 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                 declarant_cnic: gd.cnic
             };
 
-            // Payload Sanitizer: Move unknown keys to 'extra_data'
             const finalPayload: any = { extra_data: {} };
-
             Object.keys(rawPayload).forEach(key => {
                 if (knownColumns.includes(key)) {
                     finalPayload[key] = rawPayload[key];
                 } else {
-                    console.warn(`Field '${key}' not in DB schema, moving to extra_data.`);
                     finalPayload.extra_data[key] = rawPayload[key];
                 }
             });
 
-            // Clean up undefined
+            // Clean up undefined/null IDs for fresh inserts
+            if (!finalPayload.id) delete finalPayload.id;
             Object.keys(finalPayload).forEach(key => finalPayload[key] === undefined && delete finalPayload[key]);
 
-            console.log("Sanitized Payload:", finalPayload);
+            console.log("Saving GD Payload (Upsert):", finalPayload);
 
-            const { error } = await supabase.from('goods_declarations').insert(finalPayload);
+            // Use upsert to handle both new and existing records
+            const { data: savedData, error } = await supabase
+                .from('goods_declarations')
+                .upsert(finalPayload)
+                .select()
+                .single();
 
-            if (error) throw error;
+            if (error) {
+                // Specifically handle the unique constraint error if it bypassed our manual check
+                if (error.code === '23505') {
+                    throw new Error(`GD No "${gd.gdNumber}" already exists. Please use a unique number.`);
+                }
+                throw error;
+            }
+
+            // Update recordId if it was a new record
+            if (savedData && (savedData as any).id) {
+                setRecordId((savedData as any).id);
+            }
 
             toast({
                 title: isSubmit ? "GD Submitted" : "Draft Saved",
@@ -314,14 +364,34 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
         placeholder?: string,
         readOnly?: boolean
     }) => {
+        const [localValue, setLocalValue] = useState(value);
+
+        useEffect(() => {
+            setLocalValue(value);
+        }, [value]);
+
+        const handleBlur = () => {
+            if (onChange && String(localValue) !== String(value)) {
+                onChange(String(localValue));
+            }
+        };
+
+        const handleKeyDown = (e: React.KeyboardEvent) => {
+            if (e.key === "Enter") {
+                (e.target as HTMLInputElement).blur();
+            }
+        };
+
         if (!isEditMode) {
             return <div className={`gd-input truncate ${className} px-1 py-0.5`}>{value}</div>;
         }
         return (
             <input
                 className={`gd-input ${className}`}
-                value={value}
-                onChange={e => onChange && onChange(e.target.value)}
+                value={localValue ?? ""}
+                onChange={e => setLocalValue(e.target.value)}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
                 type={type}
                 placeholder={placeholder}
                 readOnly={readOnly}
@@ -397,10 +467,13 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                 `}</style>
 
                 {/* Logo Section - Visible in Print & View */}
-                <div className="flex flex-col items-center justify-center mb-4 pt-2">
-                    {/* <img src="/kohesar_logo.png" alt="Kohsar Logistics" className="h-16 object-contain mb-1" onError={(e) => (e.currentTarget.style.display = 'none')} /> */}
-                    {/* <h2 className="text-lg font-bold text-black hidden print:block">KOHSAR LOGISTICS (PRIVATE) LIMITED</h2> */}
-                    <p className="text-[10px] italic text-gray-600 hidden print:block">KEEP THE LORD ON THE ROAD</p>
+                {/* Logo Section - Visible in Print & View */}
+                <div className="flex flex-row items-center justify-start mb-4 pt-2 gap-4">
+                    <img src="/kohesar_logo.png" alt="Kohesar Logistics" className="h-20 object-contain" />
+                    <div className="flex flex-col items-start">
+                        <h2 className="text-xl font-bold text-black uppercase tracking-wider">Kohesar Logistics (Private) Limited</h2>
+                        <p className="text-[10px] italic text-gray-600 tracking-widest">KEEP THE LORD ON THE ROAD</p>
+                    </div>
                 </div>
 
                 {/* 1. Header Section */}
@@ -677,7 +750,7 @@ const OfficialGDForm = ({ initialData, onSaveSuccess }: OfficialGDFormProps) => 
                                         <InputField value={item.uom} onChange={v => handleItemChange(idx, 'uom', v)} className="text-center" />
                                     </td>
                                     <td className="border-r border-black p-0">
-                                        <InputField value={item.qty ? Math.round(item.declaredValue / item.qty) : 0} type="number" className="text-center" readOnly />
+                                        <InputField value={(item.qty ? Math.round(item.declaredValue / item.qty) : 0).toLocaleString()} className="text-center" readOnly />
                                     </td>
                                     <td className="border-r border-black p-0">
                                         <InputField value={item.assessableValue} onChange={v => handleItemChange(idx, 'assessableValue', Number(v))} type="number" className="text-center bg-yellow-50" />

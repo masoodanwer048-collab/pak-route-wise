@@ -105,7 +105,7 @@ const ManifestDetails = () => {
             {/* Branding Header */}
             <div className="flex flex-col items-center justify-center border-b pb-6 space-y-2">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">KOHSAR LOGISTICS (PRIVATE) LIMITED</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">KOHESAR LOGISTICS (PRIVATE) LIMITED</h1>
                     <p className="text-sm font-medium text-slate-500 italic">"KEEP THE LORD ON THE ROAD"</p>
                 </div>
             </div>

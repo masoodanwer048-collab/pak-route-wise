@@ -38,11 +38,9 @@ import { ArrowLeft, Save, Send, FileText, Truck, User, Package, Shield } from "l
 
 // --- Schema Definition ---
 const manifestSchema = z.object({
-    // Required
-    manifest_type: z.enum(["LINEHAUL", "DELIVERY", "RTO", "VENDOR", "CONTAINER"], {
-        required_error: "Manifest Type is required",
-    }),
-    dispatch_date_time: z.string().min(1, "Manifest Date is required"),
+    // Lenient schema for draft saving
+    manifest_type: z.enum(["LINEHAUL", "DELIVERY", "RTO", "VENDOR", "CONTAINER"]).optional(),
+    dispatch_date_time: z.string().optional(),
 
     // Optional Basic
     manifest_number: z.string().optional(),
@@ -301,25 +299,12 @@ const CreateManifest = () => {
                 }
             }
 
+            // Validation: Minimal safety for submission (Session check only)
             if (isSubmit && !currentUser) {
                 toast.info("Please login to submit the manifest.");
                 const currentPath = location.pathname + location.search + (location.search ? "&" : "?") + "action=submit";
                 navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
                 return;
-            }
-
-            // Validation: Require Vehicle Number & Driver Name on Submit
-            if (isSubmit) {
-                const missingFields = [];
-                if (!values.vehicle_reg_no) missingFields.push("Vehicle Registration No");
-                if (!values.driver_name) missingFields.push("Driver Name");
-
-                if (missingFields.length > 0) {
-                    toast.error(`${missingFields.join(" & ")} required to submit.`);
-                    setLoading(false);
-                    setIsSubmitting(false);
-                    return;
-                }
             }
 
             // Ensure Created By is valid text or null
@@ -407,7 +392,7 @@ const CreateManifest = () => {
         <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
             <div className="flex flex-col items-center justify-center border-b pb-6 space-y-2">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">KOHSAR LOGISTICS (PRIVATE) LIMITED</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">KOHESAR LOGISTICS (PRIVATE) LIMITED</h1>
                     <p className="text-sm font-medium text-slate-500 italic">"KEEP THE LORD ON THE ROAD"</p>
                 </div>
             </div>
@@ -455,7 +440,7 @@ const CreateManifest = () => {
                         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <FormField control={form.control} name="manifest_type" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Manifest Type *</FormLabel>
+                                    <FormLabel>Manifest Type</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value || "LINEHAUL"}>
                                         <FormControl><SelectTrigger><SelectValue placeholder="Select Type" /></SelectTrigger></FormControl>
                                         <SelectContent>
@@ -472,7 +457,7 @@ const CreateManifest = () => {
 
                             <FormField control={form.control} name="dispatch_date_time" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Manifest Date *</FormLabel>
+                                    <FormLabel>Manifest Date</FormLabel>
                                     <FormControl><Input type="datetime-local" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -488,21 +473,24 @@ const CreateManifest = () => {
                             <FormField control={form.control} name="origin_hub" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Origin Hub</FormLabel>
-                                    <FormControl><Input placeholder="e.g. Lahore Hub" {...field} /></FormControl>
+                                    <FormControl><Input placeholder="e.g. Karachi Hub" {...field} /></FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )} />
 
                             <FormField control={form.control} name="destination_hub" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Destination Hub</FormLabel>
-                                    <FormControl><Input placeholder="e.g. Karachi Port" {...field} /></FormControl>
+                                    <FormControl><Input placeholder="e.g. Torkham Port" {...field} /></FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )} />
 
                             <FormField control={form.control} name="route_name" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Route Name</FormLabel>
-                                    <FormControl><Input placeholder="e.g. LHE-KHI Express" {...field} /></FormControl>
+                                    <FormControl><Input placeholder="e.g. KHI-LHE Express" {...field} /></FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )} />
 
