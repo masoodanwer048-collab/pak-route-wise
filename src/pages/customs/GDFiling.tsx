@@ -30,7 +30,7 @@ import { GDDialog } from '@/components/customs/GDDialog';
 import { GDViewDialog } from '@/components/customs/GDViewDialog';
 import OfficialGDForm from "@/components/customs/OfficialGDForm";
 import ActionsMenu from "@/components/common/ActionsMenu";
-import { GoodsDeclaration } from '@/types/logistics';
+import { GoodsDeclarationLocal } from '@/hooks/useGoodsDeclaration';
 import {
   Select,
   SelectContent,
@@ -99,7 +99,7 @@ export default function GDFiling() {
   const [viewMode, setViewMode] = useState<'list' | 'form'>('list');
   const [dialogOpen, setDialogOpen] = useState(false); // Legacy dialog
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [selectedGD, setSelectedGD] = useState<GoodsDeclaration | null>(null);
+  const [selectedGD, setSelectedGD] = useState<GoodsDeclarationLocal | null>(null);
 
   const handleCreateNew = () => {
     setSelectedGD(null);
@@ -111,7 +111,7 @@ export default function GDFiling() {
     setDialogOpen(false);
   };
 
-  const handleEdit = (gd: GoodsDeclaration) => {
+  const handleEdit = (gd: GoodsDeclarationLocal) => {
     setSelectedGD(gd);
     // Use the new form for editing if possible, or fallback to dialog
     // For now, let's open the dialog for quick edits as per old flow, or switch to form mode?
@@ -119,12 +119,12 @@ export default function GDFiling() {
     setViewMode('form');
   };
 
-  const handleView = (gd: GoodsDeclaration) => {
+  const handleView = (gd: GoodsDeclarationLocal) => {
     setSelectedGD(gd);
     setViewDialogOpen(true);
   };
 
-  const handleDelete = (gd: GoodsDeclaration) => {
+  const handleDelete = (gd: GoodsDeclarationLocal) => {
     // Confirm?
     deleteGD(gd.id);
     toast.success("GD record deleted");

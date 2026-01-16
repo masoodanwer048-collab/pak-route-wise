@@ -16,7 +16,7 @@ import {
     DollarSign,
     Package,
     MapPin,
-    Layers
+    // Layers icon defined locally below
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -91,26 +91,8 @@ export default function OperationsWorkflow() {
     const [manifestCompleted, setManifestCompleted] = useState(false);
 
     useEffect(() => {
-        const checkManifestStatus = async () => {
-            if (!user) return;
-            try {
-                // Check if user has any submitted manifests
-                // Note: user.id might need to be cast to uuid in DB if mismatch, but Supabase client handles string usually.
-                // Assuming RLS allows us to see our own.
-                const { count, error } = await supabase
-                    .from('carrier_manifests')
-                    .select('*', { count: 'exact', head: true })
-                    .in('status', ['SUBMITTED', 'APPROVED']);
-
-                if (!error && count && count > 0) {
-                    setManifestCompleted(true);
-                }
-            } catch (e) {
-                console.error("Error checking manifest status", e);
-            }
-        };
-
-        checkManifestStatus();
+        // Mock check for manifest status
+        setManifestCompleted(false);
     }, [user]);
 
     return (
