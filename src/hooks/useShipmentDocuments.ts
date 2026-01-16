@@ -1,106 +1,104 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
 export interface ShipmentDocument {
-    id: string;
-    shipment_id?: string;
-    name: string; // document_number or derived
-    type: string; // 'permit', 'invoice', etc.
-    category: 'Customs' | 'Shipping' | 'Invoices' | 'Certificates';
-    uploadDate: string;
-    size: string;
-    status: 'Verified' | 'Pending' | 'Rejected';
-    file_url: string;
+  id: string;
+  shipment_id?: string;
+  name: string;
+  type: string;
+  category: 'Customs' | 'Shipping' | 'Invoices' | 'Certificates';
+  uploadDate: string;
+  size: string;
+  status: 'Verified' | 'Pending' | 'Rejected';
+  file_url: string;
 }
 
+const generateMockDocuments = (): ShipmentDocument[] => [
+  {
+    id: '1',
+    shipment_id: 'shp-001',
+    name: 'Bill_of_Lading_MAEU123456.pdf',
+    type: 'BL',
+    category: 'Shipping',
+    uploadDate: '2024-01-15',
+    size: '2.4 MB',
+    status: 'Verified',
+    file_url: '/documents/bl-123.pdf',
+  },
+  {
+    id: '2',
+    shipment_id: 'shp-001',
+    name: 'Commercial_Invoice_INV2024001.pdf',
+    type: 'INVOICE',
+    category: 'Invoices',
+    uploadDate: '2024-01-15',
+    size: '1.2 MB',
+    status: 'Verified',
+    file_url: '/documents/inv-001.pdf',
+  },
+  {
+    id: '3',
+    shipment_id: 'shp-002',
+    name: 'Customs_Declaration_GD2024001.pdf',
+    type: 'GD',
+    category: 'Customs',
+    uploadDate: '2024-01-18',
+    size: '3.1 MB',
+    status: 'Pending',
+    file_url: '/documents/gd-001.pdf',
+  },
+  {
+    id: '4',
+    name: 'Certificate_of_Origin_COO2024.pdf',
+    type: 'CERTIFICATE',
+    category: 'Certificates',
+    uploadDate: '2024-01-20',
+    size: '0.8 MB',
+    status: 'Verified',
+    file_url: '/documents/coo-001.pdf',
+  },
+];
+
 export function useShipmentDocuments() {
-    const queryClient = useQueryClient();
+  const [documents, setDocuments] = useState<ShipmentDocument[]>(generateMockDocuments);
+  const [isLoading] = useState(false);
 
-    const { data: documents = [], isLoading } = useQuery({
-        queryKey: ['shipment_documents'],
-        queryFn: async () => {
-            const { data, error } = await supabase
-                .from('shipment_documents')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('Fetch docs error:', error);
-                return [];
-            }
-
-            return data.map((d: any) => ({
-                id: d.id,
-                shipment_id: d.shipment_id,
-                name: d.file_url ? d.file_url.split('/').pop() : `Doc-${d.id.slice(0, 8)}`,
-                type: d.type.toUpperCase(),
-                category: (d.type === 'permit' || d.type === 'gd') ? 'Customs' : 'Shipping', // logic to map type to category
-                uploadDate: d.created_at.split('T')[0],
-                size: 'N/A', // Size not stored in DB normally unless added
-                status: d.status || 'Pending',
-                file_url: d.file_url,
-            })) as ShipmentDocument[];
-        },
-    });
-
-    const uploadDocumentMutation = useMutation({
-        mutationFn: async ({ file, type, category, shipmentId }: { file: File, type: string, category: string, shipmentId?: string }) => {
-            const fileName = `${Date.now()}-${file.name}`;
-
-            // 1. Upload to Storage
-            // Check if bucket exists, or assume 'documents' bucket
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('documents')
-                .upload(fileName, file);
-
-            if (uploadError) {
-                // If bucket doesn't exist, this will fail. User needs to create bucket.
-                throw new Error(`Upload failed: ${uploadError.message}`);
-            }
-
-            const fileUrl = uploadData.path; // or getPublicUrl
-
-            // 2. Insert Record
-            const { data, error } = await supabase
-                .from('shipment_documents')
-                .insert({
-                    shipment_id: shipmentId, // Optional, can be null
-                    type: type.toLowerCase(), // Store as 'permit', 'invoice'
-                    file_url: fileUrl,
-                    status: 'pending',
-                })
-                .select()
-                .single();
-
-            if (error) throw error;
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['shipment_documents'] });
-            toast.success('Document uploaded successfully');
-        },
-        onError: (error: any) => {
-            toast.error(`Upload error: ${error.message}`);
-        }
-    });
-
-    const deleteDocumentMutation = useMutation({
-        mutationFn: async (id: string) => {
-            const { error } = await supabase.from('shipment_documents').delete().eq('id', id);
-            if (error) throw error;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['shipment_documents'] });
-            toast.success('Document deleted');
-        },
-    });
-
-    return {
-        documents,
-        isLoading,
-        uploadDocument: uploadDocumentMutation.mutate,
-        deleteDocument: deleteDocumentMutation.mutate,
+  const uploadDocument = useCallback(({ file, type, category, shipmentId }: { 
+    file: File; 
+    type: string; 
+    category: string; 
+    shipmentId?: string 
+  }) => {
+    const newDoc: ShipmentDocument = {
+      id: `doc-${Date.now()}`,
+      shipment_id: shipmentId,
+      name: file.name,
+      type: type.toUpperCase(),
+      category: category as ShipmentDocument['category'],
+      uploadDate: new Date().toISOString().split('T')[0],
+      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+      status: 'Pending',
+      file_url: URL.createObjectURL(file),
     };
+    setDocuments(prev => [newDoc, ...prev]);
+    toast.success('Document uploaded successfully');
+  }, []);
+
+  const deleteDocument = useCallback((id: string) => {
+    setDocuments(prev => prev.filter(d => d.id !== id));
+    toast.success('Document deleted');
+  }, []);
+
+  const updateDocumentStatus = useCallback((id: string, status: ShipmentDocument['status']) => {
+    setDocuments(prev => prev.map(d => d.id === id ? { ...d, status } : d));
+    toast.success('Document status updated');
+  }, []);
+
+  return {
+    documents,
+    isLoading,
+    uploadDocument,
+    deleteDocument,
+    updateDocumentStatus,
+  };
 }

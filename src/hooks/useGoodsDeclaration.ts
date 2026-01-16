@@ -1,13 +1,12 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { GoodsDeclaration, TradeType } from '@/types/logistics';
 import { toast } from 'sonner';
+import { Party } from '@/types/logistics';
 
 type GDStatus = 'draft' | 'submitted' | 'assessed' | 'paid' | 'examined' | 'released';
+type GDType = 'import' | 'export' | 'transit' | 'transshipment';
 
 export interface GDFormData {
-  gdType: 'import' | 'export' | 'transit' | 'transshipment';
+  gdType: GDType;
   blNumber: string;
   importerName: string;
   importerNtn: string;
@@ -25,90 +24,146 @@ export interface GDFormData {
   assessedValue: number;
 }
 
-interface UseGoodsDeclarationProps {
-  gdType?: 'import' | 'export' | 'transit' | 'transshipment' | 'all';
+// Local GoodsDeclaration type with string dates for easier handling
+export interface GoodsDeclarationLocal {
+  id: string;
+  gdNumber: string;
+  gdType: GDType;
+  status: GDStatus;
+  shipmentId: string;
+  blNumber: string;
+  importer: Party;
+  exporter: Party;
+  customsStation: string;
+  portOfEntry: string;
+  hsCode: string;
+  goodsDescription: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  invoiceValue: number;
+  currency: string;
+  exchangeRate: number;
+  assessedValue: number;
+  customsDuty: number;
+  additionalCustomsDuty: number;
+  regulatoryDuty: number;
+  salesTax: number;
+  additionalSalesTax: number;
+  withholdingTax: number;
+  exciseDuty: number;
+  totalDutyTax: number;
+  filingDate: string;
+  assessmentDate?: string;
+  paymentDate?: string;
+  releaseDate?: string;
 }
 
-const mapToGD = (row: any): GoodsDeclaration => ({
-  id: row.id,
-  gdNumber: row.gd_number,
-  gdType: row.gd_type,
-  status: row.status as GDStatus,
-  shipmentId: row.shipment_id || '',
-  blNumber: row.bl_number || '',
-  importer: {
-    id: row.importer_id || 'unknown',
-    name: 'Importer Name (Pending Join)', // In real app, join with customers table
-    ntn: 'N/A',
-    address: '',
-    city: '',
-    country: '',
-    contactPerson: '',
-    phone: '',
-    email: '',
-  },
-  exporter: {
-    id: 'unknown',
-    name: row.exporter_name || 'Unknown Exporter',
-    ntn: 'N/A',
-    address: '',
-    city: '',
-    country: '',
-    contactPerson: '',
-    phone: '',
-    email: '',
-  },
-  customsStation: row.customs_station || '',
-  portOfEntry: row.port_of_entry || '',
-  hsCode: row.hs_code || '',
-  goodsDescription: row.goods_description || '',
-  invoiceNumber: row.invoice_number || '',
-  invoiceDate: row.invoice_date || new Date().toISOString(),
-  invoiceValue: row.invoice_value || 0,
-  currency: row.currency || 'USD',
-  exchangeRate: row.exchange_rate || 278.50,
-  assessedValue: row.assessed_value || 0,
-  customsDuty: row.customs_duty || 0,
-  additionalCustomsDuty: 0,
-  regulatoryDuty: row.regulatory_duty || 0,
-  salesTax: row.sales_tax || 0,
-  additionalSalesTax: row.additional_sales_tax || 0,
-  withholdingTax: row.withholding_tax || 0,
-  exciseDuty: row.federal_excise_duty || 0,
-  totalDutyTax: row.total_duty_tax || 0,
-  filingDate: row.filing_date,
-  assessmentDate: row.assessment_date,
-  paymentDate: row.payment_date,
-  releaseDate: row.release_date,
-});
+interface UseGoodsDeclarationProps {
+  gdType?: GDType | 'all';
+}
+
+const generateMockGDs = (): GoodsDeclarationLocal[] => {
+  return [
+    {
+      id: '1',
+      gdNumber: 'GD-2024-001234',
+      gdType: 'import',
+      status: 'released',
+      shipmentId: 'SHP-001',
+      blNumber: 'MAEU123456789',
+      importer: { id: '1', name: 'Allied Electronics Ltd', ntn: '1234567-8', address: 'Karachi', city: 'Karachi', country: 'Pakistan', contactPerson: 'Ahmed', phone: '+92-21-1234567', email: 'info@allied.pk' },
+      exporter: { id: '2', name: 'Samsung Korea', ntn: 'KR-12345', address: 'Seoul', city: 'Seoul', country: 'South Korea', contactPerson: 'Kim', phone: '+82-123-456', email: 'export@samsung.kr' },
+      customsStation: 'Karachi Port',
+      portOfEntry: 'Port Qasim',
+      hsCode: '8471.30.0000',
+      goodsDescription: 'Laptop Computers, 500 units',
+      invoiceNumber: 'INV-2024-00123',
+      invoiceDate: '2024-01-15',
+      invoiceValue: 125000,
+      currency: 'USD',
+      exchangeRate: 278.50,
+      assessedValue: 35187500,
+      customsDuty: 5278125,
+      additionalCustomsDuty: 0,
+      regulatoryDuty: 351875,
+      salesTax: 7333050,
+      additionalSalesTax: 1759450,
+      withholdingTax: 703750,
+      exciseDuty: 0,
+      totalDutyTax: 15426250,
+      filingDate: '2024-01-16',
+      assessmentDate: '2024-01-17',
+      paymentDate: '2024-01-18',
+      releaseDate: '2024-01-19',
+    },
+    {
+      id: '2',
+      gdNumber: 'GD-2024-001235',
+      gdType: 'import',
+      status: 'assessed',
+      shipmentId: 'SHP-002',
+      blNumber: 'HLCU987654321',
+      importer: { id: '3', name: 'Textile Mills Pakistan', ntn: '9876543-2', address: 'Lahore', city: 'Lahore', country: 'Pakistan', contactPerson: 'Ali', phone: '+92-42-9876543', email: 'info@textiles.pk' },
+      exporter: { id: '4', name: 'Cotton Corp China', ntn: 'CN-54321', address: 'Shanghai', city: 'Shanghai', country: 'China', contactPerson: 'Wang', phone: '+86-21-54321', email: 'export@cotton.cn' },
+      customsStation: 'Lahore Dry Port',
+      portOfEntry: 'KICT',
+      hsCode: '5201.00.0000',
+      goodsDescription: 'Raw Cotton, 100 Bales',
+      invoiceNumber: 'INV-2024-00456',
+      invoiceDate: '2024-01-18',
+      invoiceValue: 75000,
+      currency: 'USD',
+      exchangeRate: 278.50,
+      assessedValue: 21112500,
+      customsDuty: 1055625,
+      additionalCustomsDuty: 0,
+      regulatoryDuty: 0,
+      salesTax: 3990187,
+      additionalSalesTax: 0,
+      withholdingTax: 422250,
+      exciseDuty: 0,
+      totalDutyTax: 5468062,
+      filingDate: '2024-01-19',
+      assessmentDate: '2024-01-20',
+    },
+    {
+      id: '3',
+      gdNumber: 'GD-2024-001236',
+      gdType: 'export',
+      status: 'submitted',
+      shipmentId: 'SHP-003',
+      blNumber: 'OOCL456789123',
+      importer: { id: '5', name: 'Dubai Trading LLC', ntn: 'UAE-11111', address: 'Dubai', city: 'Dubai', country: 'UAE', contactPerson: 'Mohammed', phone: '+971-4-1234567', email: 'info@dubaitrading.ae' },
+      exporter: { id: '6', name: 'Pakistan Rice Export', ntn: '1111111-1', address: 'Karachi', city: 'Karachi', country: 'Pakistan', contactPerson: 'Hassan', phone: '+92-21-1111111', email: 'export@pkrice.pk' },
+      customsStation: 'Karachi Port',
+      portOfEntry: 'PICT',
+      hsCode: '1006.30.0000',
+      goodsDescription: 'Basmati Rice, 500 MT',
+      invoiceNumber: 'EXP-2024-00789',
+      invoiceDate: '2024-01-20',
+      invoiceValue: 250000,
+      currency: 'USD',
+      exchangeRate: 278.50,
+      assessedValue: 70312500,
+      customsDuty: 0,
+      additionalCustomsDuty: 0,
+      regulatoryDuty: 0,
+      salesTax: 0,
+      additionalSalesTax: 0,
+      withholdingTax: 0,
+      exciseDuty: 0,
+      totalDutyTax: 0,
+      filingDate: '2024-01-21',
+    },
+  ];
+};
 
 export function useGoodsDeclaration({ gdType = 'all' }: UseGoodsDeclarationProps = {}) {
-  const queryClient = useQueryClient();
+  const [gds, setGDs] = useState<GoodsDeclarationLocal[]>(generateMockGDs);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<GDStatus | 'all'>('all');
   const [sortField, setSortField] = useState<'filingDate' | 'gdNumber' | 'invoiceValue'>('filingDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  const { data: gds = [], isLoading } = useQuery({
-    queryKey: ['goods_declarations'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('goods_declarations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Fetch GDs error:', error);
-        if (error.code === '42P01') {
-          toast.error('DB Setup required: "goods_declarations" table missing.');
-        } else {
-          toast.error('Failed to load declarations');
-        }
-        return [];
-      }
-      return data.map(mapToGD);
-    },
-  });
 
   const filteredGDs = useMemo(() => {
     return gds
@@ -127,7 +182,7 @@ export function useGoodsDeclaration({ gdType = 'all' }: UseGoodsDeclarationProps
         }
         return true;
       })
-      .sort((a, b) => { // Client side sort for now
+      .sort((a, b) => {
         let comparison = 0;
         switch (sortField) {
           case 'filingDate':
@@ -159,55 +214,98 @@ export function useGoodsDeclaration({ gdType = 'all' }: UseGoodsDeclarationProps
     };
   }, [gds, gdType]);
 
-  const addGDMutation = useMutation({
-    mutationFn: async (data: GDFormData) => {
-      // Calculate duties roughly for demo insert
+  const addGD = useCallback((data: GDFormData) => {
+    const customsDuty = data.assessedValue * 0.15;
+    const salesTax = data.assessedValue * 0.18;
+    const totalDuty = customsDuty + salesTax;
+
+    const newGD: GoodsDeclarationLocal = {
+      id: `gd-${Date.now()}`,
+      gdNumber: `GD-${new Date().getFullYear()}-${String(gds.length + 1).padStart(6, '0')}`,
+      gdType: data.gdType,
+      status: 'draft',
+      shipmentId: '',
+      blNumber: data.blNumber,
+      importer: { id: '1', name: data.importerName, ntn: data.importerNtn, address: '', city: '', country: 'Pakistan', contactPerson: '', phone: '', email: '' },
+      exporter: { id: '2', name: data.exporterName, ntn: data.exporterNtn, address: '', city: '', country: '', contactPerson: '', phone: '', email: '' },
+      customsStation: data.customsStation,
+      portOfEntry: data.portOfEntry,
+      hsCode: data.hsCode,
+      goodsDescription: data.goodsDescription,
+      invoiceNumber: data.invoiceNumber,
+      invoiceDate: data.invoiceDate,
+      invoiceValue: data.invoiceValue,
+      currency: data.currency,
+      exchangeRate: data.exchangeRate,
+      assessedValue: data.assessedValue,
+      customsDuty,
+      additionalCustomsDuty: 0,
+      regulatoryDuty: 0,
+      salesTax,
+      additionalSalesTax: 0,
+      withholdingTax: 0,
+      exciseDuty: 0,
+      totalDutyTax: totalDuty,
+      filingDate: new Date().toISOString().split('T')[0],
+    };
+
+    setGDs(prev => [newGD, ...prev]);
+    toast.success('GD Created');
+  }, [gds.length]);
+
+  const updateGD = useCallback((id: string, data: GDFormData) => {
+    setGDs(prev => prev.map(gd => {
+      if (gd.id !== id) return gd;
+      
       const customsDuty = data.assessedValue * 0.15;
       const salesTax = data.assessedValue * 0.18;
-      const totalDuty = customsDuty + salesTax; // simplified
+      const totalDuty = customsDuty + salesTax;
 
-      const { data: newRow, error } = await supabase
-        .from('goods_declarations')
-        .insert({
-          gd_number: `GD-${Date.now()}`, // Temporary ID gen
-          gd_type: data.gdType,
-          status: 'draft',
-          bl_number: data.blNumber,
-          exporter_name: data.exporterName,
-          customs_station: data.customsStation,
-          port_of_entry: data.portOfEntry,
-          hs_code: data.hsCode,
-          goods_description: data.goodsDescription,
-          invoice_number: data.invoiceNumber,
-          invoice_date: data.invoiceDate,
-          invoice_value: data.invoiceValue,
-          currency: data.currency,
-          exchange_rate: data.exchangeRate,
-          assessed_value: data.assessedValue,
-          customs_duty: customsDuty,
-          sales_tax: salesTax,
-          total_duty_tax: totalDuty
-        })
-        .select()
-        .single();
+      return {
+        ...gd,
+        gdType: data.gdType,
+        blNumber: data.blNumber,
+        importer: { ...gd.importer, name: data.importerName, ntn: data.importerNtn },
+        exporter: { ...gd.exporter, name: data.exporterName, ntn: data.exporterNtn },
+        customsStation: data.customsStation,
+        portOfEntry: data.portOfEntry,
+        hsCode: data.hsCode,
+        goodsDescription: data.goodsDescription,
+        invoiceNumber: data.invoiceNumber,
+        invoiceDate: data.invoiceDate,
+        invoiceValue: data.invoiceValue,
+        currency: data.currency,
+        exchangeRate: data.exchangeRate,
+        assessedValue: data.assessedValue,
+        customsDuty,
+        salesTax,
+        totalDutyTax: totalDuty,
+      };
+    }));
+    toast.success('GD Updated');
+  }, []);
 
-      if (error) throw error;
-      return mapToGD(newRow);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goods_declarations'] });
-      toast.success('GD Created');
-    },
-    onError: (err: any) => {
-      toast.error(`Error creating GD: ${err.message}`);
-    }
-  });
+  const updateStatus = useCallback((id: string, newStatus: GDStatus) => {
+    setGDs(prev => prev.map(gd => {
+      if (gd.id !== id) return gd;
+      
+      const updates: Partial<GoodsDeclarationLocal> = { status: newStatus };
+      const today = new Date().toISOString().split('T')[0];
+      
+      if (newStatus === 'submitted') updates.filingDate = today;
+      if (newStatus === 'assessed') updates.assessmentDate = today;
+      if (newStatus === 'paid') updates.paymentDate = today;
+      if (newStatus === 'released') updates.releaseDate = today;
+      
+      return { ...gd, ...updates };
+    }));
+    toast.success(`Status updated to ${newStatus}`);
+  }, []);
 
-  // Stubs for update/delete/status logic to avoid breaking UI that expects them
-  // In a real migration we'd implement real mutations for each
-  const updateGD = useCallback(() => toast.info('Update not fully implemented in demo migration'), []);
-  const updateStatus = useCallback(() => toast.info('Status update not fully implemented'), []);
-  const deleteGD = useCallback(() => toast.info('Delete not fully implemented'), []);
+  const deleteGD = useCallback((id: string) => {
+    setGDs(prev => prev.filter(gd => gd.id !== id));
+    toast.success('GD Deleted');
+  }, []);
 
   return {
     gds: filteredGDs,
@@ -221,7 +319,7 @@ export function useGoodsDeclaration({ gdType = 'all' }: UseGoodsDeclarationProps
     setSortField,
     sortOrder,
     setSortOrder,
-    addGD: addGDMutation.mutate,
+    addGD,
     updateGD,
     updateStatus,
     deleteGD,

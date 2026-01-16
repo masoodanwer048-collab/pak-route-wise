@@ -30,6 +30,7 @@ interface ImportDialogProps {
 const defaultFormData: ImportFormData = {
   blNumber: '',
   blDate: new Date().toISOString().split('T')[0],
+  blType: 'Original',
   vesselName: '',
   voyageNumber: '',
   portOfLoading: '',
@@ -59,6 +60,7 @@ export function ImportDialog({ open, onOpenChange, importData, onSubmit }: Impor
       setFormData({
         blNumber: importData.blNumber,
         blDate: new Date(importData.blDate).toISOString().split('T')[0],
+        blType: importData.blType,
         vesselName: importData.vesselName,
         voyageNumber: importData.voyageNumber,
         portOfLoading: importData.portOfLoading,
