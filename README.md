@@ -1,8 +1,10 @@
-# Welcome to your Lovable project
+# Pak Route Wise
+
+**Live Deployment**: [https://pak-route-wise-main.vercel.app](https://vercel.com/imrans-projects-faf1daf5/pak-route-wise-main)
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**URL**: https://vercel.com/imrans-projects-faf1daf5/pak-route-wise-main
 
 ## How can I edit this code?
 
