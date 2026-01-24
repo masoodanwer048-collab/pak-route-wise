@@ -606,7 +606,7 @@ const CreateManifest = () => {
                                             <SelectItem value="CONTAINER">Container</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    {/* <FormMessage /> */}
                                 </FormItem>
                             )} />
 
@@ -614,7 +614,7 @@ const CreateManifest = () => {
                                 <FormItem>
                                     <FormLabel>Manifest Date</FormLabel>
                                     <FormControl><Input type="datetime-local" {...field} /></FormControl>
-                                    <FormMessage />
+                                    {/* <FormMessage /> */}
                                 </FormItem>
                             )} />
 
@@ -629,7 +629,7 @@ const CreateManifest = () => {
                                 <FormItem>
                                     <FormLabel>Origin Hub</FormLabel>
                                     <FormControl><Input placeholder="e.g. Karachi Hub" {...field} /></FormControl>
-                                    <FormMessage />
+                                    {/* <FormMessage /> */}
                                 </FormItem>
                             )} />
 
@@ -637,7 +637,7 @@ const CreateManifest = () => {
                                 <FormItem>
                                     <FormLabel>Destination Hub</FormLabel>
                                     <FormControl><Input placeholder="e.g. Torkham Port" {...field} /></FormControl>
-                                    <FormMessage />
+                                    {/* <FormMessage /> */}
                                 </FormItem>
                             )} />
 
@@ -645,7 +645,7 @@ const CreateManifest = () => {
                                 <FormItem>
                                     <FormLabel>Route Name</FormLabel>
                                     <FormControl><Input placeholder="e.g. KHI-LHE Express" {...field} /></FormControl>
-                                    <FormMessage />
+                                    {/* <FormMessage /> */}
                                 </FormItem>
                             )} />
 
