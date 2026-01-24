@@ -1,6 +1,4 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export type DocumentType = 'bl' | 'awb' | 'bilty' | 'manifest' | 'packing_list';
@@ -11,16 +9,13 @@ export interface ShippingDocument {
   type: DocumentType;
   documentNumber: string;
   status: DocumentStatus;
-  // Vessel/Flight/Vehicle Info
   carrier: string;
   vesselFlightTruck: string;
   voyageFlightNo: string;
-  // Route
   origin: string;
   destination: string;
-  pol?: string; // Port of Loading
-  pod?: string; // Port of Discharge
-  // Parties
+  pol?: string;
+  pod?: string;
   shipper: string;
   shipperAddress?: string;
   shipperContact?: string;
@@ -28,7 +23,6 @@ export interface ShippingDocument {
   consigneeAddress?: string;
   consigneeContact?: string;
   notifyParties: string[];
-  // Cargo
   cargoType: 'FCL' | 'LCL';
   containers: string[];
   marksAndNumbers?: string;
@@ -38,15 +32,12 @@ export interface ShippingDocument {
   dimensions?: { length: number; width: number; height: number; unit: 'cm' | 'in' };
   packages: number;
   description: string;
-  // Dates
   issueDate: string;
   etd?: string;
   eta?: string;
-  // Additional
   freightTerms: 'prepaid' | 'collect';
   remarks?: string;
   createdAt: string;
-  // Manifest Specific - Stored in metadata
   recipient?: string;
   recipientEmail?: string;
   recipientAddress?: string;
@@ -67,87 +58,101 @@ export interface DocumentFilters {
   dateRange: 'today' | 'week' | 'month' | 'all';
 }
 
-const mapToDocument = (row: any): ShippingDocument => {
-  const meta = row.metadata || {};
-  return {
-    id: row.id,
-    type: row.type as DocumentType,
-    documentNumber: row.document_number || '',
-    status: (row.status as DocumentStatus) || 'pending',
-    createdAt: row.created_at,
-
-    // Spread metadata fields
-    carrier: meta.carrier || '',
-    vesselFlightTruck: meta.vesselFlightTruck || '',
-    voyageFlightNo: meta.voyageFlightNo || '',
-    origin: meta.origin || '',
-    destination: meta.destination || '',
-    pol: meta.pol,
-    pod: meta.pod,
-    shipper: meta.shipper || '',
-    shipperAddress: meta.shipperAddress,
-    shipperContact: meta.shipperContact,
-    consignee: meta.consignee || '',
-    consigneeAddress: meta.consigneeAddress,
-    consigneeContact: meta.consigneeContact,
-    notifyParties: meta.notifyParties || [],
-    cargoType: meta.cargoType || 'FCL',
-    containers: meta.containers || [],
-    marksAndNumbers: meta.marksAndNumbers,
-    hsCode: meta.hsCode,
-    weight: meta.weight || '',
-    volume: meta.volume || '',
-    dimensions: meta.dimensions,
-    packages: meta.packages || 0,
-    description: meta.description || '',
-    issueDate: meta.issueDate || row.created_at,
-    etd: meta.etd,
-    eta: meta.eta,
-    freightTerms: meta.freightTerms || 'prepaid',
-    remarks: meta.remarks,
-    recipient: meta.recipient,
-    recipientEmail: meta.recipientEmail,
-    recipientAddress: meta.recipientAddress,
-    recipientPhone: meta.recipientPhone,
-    manifestItems: meta.manifestItems,
+const generateMockDocuments = (type: DocumentType): ShippingDocument[] => {
+  const baseDoc = {
+    carrier: 'Maersk Line',
+    vesselFlightTruck: 'MSC GENOVA',
+    voyageFlightNo: 'VY-2024-001',
+    origin: 'Shanghai',
+    destination: 'Karachi',
+    pol: 'Shanghai',
+    pod: 'Karachi',
+    shipper: 'Samsung Korea',
+    shipperAddress: '123 Samsung Way, Seoul',
+    consignee: 'Allied Electronics Ltd',
+    consigneeAddress: 'Plot 123, SITE, Karachi',
+    notifyParties: ['Bank of Punjab', 'Allied Insurance'],
+    cargoType: 'FCL' as const,
+    containers: ['MSKU1234567', 'MSKU7654321'],
+    hsCode: '8471.30.0000',
+    weight: '2500 KG',
+    volume: '45 CBM',
+    packages: 500,
+    description: 'Laptop Computers',
+    freightTerms: 'prepaid' as const,
   };
+
+  const prefixes: Record<DocumentType, string> = {
+    bl: 'BL',
+    awb: 'AWB',
+    bilty: 'BTY',
+    manifest: 'MAN',
+    packing_list: 'PKL',
+  };
+
+  return [
+    {
+      id: `${type}-1`,
+      type,
+      documentNumber: `${prefixes[type]}-2024-00001`,
+      status: 'released',
+      ...baseDoc,
+      issueDate: '2024-01-15',
+      etd: '2024-01-20',
+      eta: '2024-02-05',
+      createdAt: '2024-01-15T10:00:00Z',
+    },
+    {
+      id: `${type}-2`,
+      type,
+      documentNumber: `${prefixes[type]}-2024-00002`,
+      status: 'pending',
+      ...baseDoc,
+      carrier: 'Hapag Lloyd',
+      vesselFlightTruck: 'EVER GIVEN',
+      voyageFlightNo: 'VY-2024-002',
+      shipper: 'Dubai Trading LLC',
+      consignee: 'Textile Mills Pakistan',
+      description: 'Raw Cotton Bales',
+      hsCode: '5201.00.0000',
+      packages: 100,
+      weight: '22000 KG',
+      issueDate: '2024-01-18',
+      etd: '2024-01-22',
+      eta: '2024-02-08',
+      createdAt: '2024-01-18T09:00:00Z',
+    },
+    {
+      id: `${type}-3`,
+      type,
+      documentNumber: `${prefixes[type]}-2024-00003`,
+      status: 'draft',
+      ...baseDoc,
+      carrier: 'OOCL',
+      vesselFlightTruck: 'CMA CGM MARCO POLO',
+      voyageFlightNo: 'VY-2024-003',
+      shipper: 'MedChem Singapore',
+      consignee: 'Pharma Solutions Pvt Ltd',
+      description: 'Pharmaceutical Products',
+      hsCode: '3004.90.0000',
+      packages: 200,
+      weight: '800 KG',
+      issueDate: '2024-01-20',
+      createdAt: '2024-01-20T14:00:00Z',
+    },
+  ];
 };
 
 export function useDocuments(type: DocumentType) {
-  const queryClient = useQueryClient();
+  const [documents, setDocuments] = useState<ShippingDocument[]>(() => generateMockDocuments(type));
   const [filters, setFilters] = useState<DocumentFilters>({
     search: '',
     status: 'all',
     dateRange: 'all',
   });
 
-  const { data: documents = [], isLoading } = useQuery({
-    queryKey: ['shipment_documents', type],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shipment_documents')
-        .select('*')
-        .eq('type', type) // Filter by type at DB level
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Fetch Documents error:', error);
-        if (error.code === '42P01') {
-          toast.error('DB Setup required: "shipment_documents" table missing.');
-        } else if (error.code === '42703') { // undefined_column if metadata missing
-          toast.error('Schema outdated: "metadata" column missing.');
-        } else {
-          toast.error('Failed to load documents');
-        }
-        return [];
-      }
-      return data.map(mapToDocument);
-    },
-  });
-
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
-      // Client-side search and status filter
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
@@ -180,39 +185,27 @@ export function useDocuments(type: DocumentType) {
     };
   }, [documents]);
 
-  const addDocumentMutation = useMutation({
-    mutationFn: async (doc: Omit<ShippingDocument, 'id' | 'createdAt'>) => {
-      // Extract metadata fields
-      const {
-        documentNumber, status, type,
-        ...metadata
-      } = doc;
+  const addDocument = useCallback((doc: Omit<ShippingDocument, 'id' | 'createdAt'>) => {
+    const newDoc: ShippingDocument = {
+      ...doc,
+      id: `${type}-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setDocuments(prev => [newDoc, ...prev]);
+    toast.success('Document Created');
+  }, [type]);
 
-      const { data: newRow, error } = await supabase
-        .from('shipment_documents')
-        .insert({
-          type: type,
-          document_number: documentNumber,
-          status: status,
-          metadata: metadata // Store rest as JSON
-        })
-        .select()
-        .single();
+  const updateDocument = useCallback((id: string, updates: Partial<ShippingDocument>) => {
+    setDocuments(prev => prev.map(doc => 
+      doc.id === id ? { ...doc, ...updates } : doc
+    ));
+    toast.success('Document Updated');
+  }, []);
 
-      if (error) throw error;
-      return mapToDocument(newRow);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shipment_documents'] });
-      toast.success('Document Created');
-    },
-    onError: (err: any) => {
-      toast.error(`Error creating document: ${err.message}`);
-    }
-  });
-
-  const updateDocument = useCallback(() => toast.info('Update not implemented in demo'), []);
-  const deleteDocument = useCallback(() => toast.info('Delete not implemented in demo'), []);
+  const deleteDocument = useCallback((id: string) => {
+    setDocuments(prev => prev.filter(doc => doc.id !== id));
+    toast.success('Document Deleted');
+  }, []);
 
   const updateFilters = useCallback((newFilters: Partial<DocumentFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
@@ -227,7 +220,7 @@ export function useDocuments(type: DocumentType) {
     allDocuments: documents,
     filters,
     stats,
-    addDocument: addDocumentMutation.mutate,
+    addDocument,
     updateDocument,
     deleteDocument,
     updateFilters,

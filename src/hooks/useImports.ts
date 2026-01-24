@@ -1,6 +1,4 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export type ImportStatus = 'pending' | 'igm_filed' | 'gd_filed' | 'assessed' | 'duty_paid' | 'examined' | 'released' | 'delivered';
@@ -9,13 +7,15 @@ export interface ImportShipment {
   id: string;
   indexNumber: string;
   igmNumber: string;
-  igmDate: string; // Changed to string for serialization
+  igmDate: string;
   blNumber: string;
   blDate: string;
+  blType: 'Original' | 'Telex' | 'Express';
   vesselName: string;
   voyageNumber: string;
   portOfLoading: string;
   portOfDischarge: string;
+  terminal: string;
   importerName: string;
   importerNtn: string;
   exporterName: string;
@@ -34,25 +34,26 @@ export interface ImportShipment {
   assessedValue: number;
   customsDuty: number;
   salesTax: number;
+  additionalDuty: number;
   totalDutyTax: number;
   gdNumber?: string;
   gdDate?: string;
-  dutyPaidDate?: string;
-  examDate?: string;
+  paymentDate?: string;
   releaseDate?: string;
   deliveryDate?: string;
   status: ImportStatus;
-  terminal: string;
   createdAt: string;
 }
 
 export interface ImportFormData {
   blNumber: string;
   blDate: string;
+  blType: 'Original' | 'Telex' | 'Express';
   vesselName: string;
   voyageNumber: string;
   portOfLoading: string;
   portOfDischarge: string;
+  terminal: string;
   importerName: string;
   importerNtn: string;
   exporterName: string;
@@ -67,76 +68,132 @@ export interface ImportFormData {
   invoiceNumber: string;
   invoiceValue: number;
   currency: string;
-  terminal: string;
 }
 
-const mapToImport = (row: any): ImportShipment => ({
-  id: row.id,
-  indexNumber: row.index_number || 'N/A',
-  igmNumber: row.igm_number || '',
-  igmDate: row.igm_date || '',
-  blNumber: row.bl_number || '',
-  blDate: row.bl_date || '',
-  vesselName: row.vessel_name || '',
-  voyageNumber: row.voyage_number || '',
-  portOfLoading: row.port_of_loading || '',
-  portOfDischarge: row.port_of_discharge || '',
-  importerName: row.importer_name || '',
-  importerNtn: row.importer_ntn || '',
-  exporterName: row.exporter_name || '',
-  countryOfOrigin: row.country_of_origin || '',
-  hsCode: row.hs_code || '',
-  goodsDescription: row.goods_description || '',
-  packages: row.packages || 0,
-  packageType: row.package_type || '',
-  grossWeight: row.gross_weight || 0,
-  netWeight: row.net_weight || 0,
-  containerNumbers: Array.isArray(row.container_numbers) ? row.container_numbers : [],
-  invoiceNumber: row.invoice_number || '',
-  invoiceValue: row.invoice_value || 0,
-  currency: row.currency || 'USD',
-  exchangeRate: row.exchange_rate || 278.50,
-  assessedValue: row.assessed_value || 0,
-  customsDuty: row.customs_duty || 0,
-  salesTax: row.sales_tax || 0,
-  totalDutyTax: row.total_duty_tax || 0,
-  gdNumber: row.gd_number,
-  gdDate: row.gd_date,
-  dutyPaidDate: row.duty_paid_date,
-  examDate: row.exam_date,
-  releaseDate: row.release_date,
-  deliveryDate: row.delivery_date,
-  status: (row.status as ImportStatus) || 'pending',
-  terminal: row.terminal || '',
-  createdAt: row.created_at,
-});
+const generateMockImports = (): ImportShipment[] => {
+  return [
+    {
+      id: '1',
+      indexNumber: 'IMP-2024-00001',
+      igmNumber: 'IGM-KHI-2024-12345',
+      igmDate: '2024-01-15',
+      blNumber: 'MAEU123456789',
+      blDate: '2024-01-10',
+      blType: 'Original',
+      vesselName: 'MSC GENOVA',
+      voyageNumber: 'VY-2024-001',
+      portOfLoading: 'Shanghai, China',
+      portOfDischarge: 'Karachi',
+      terminal: 'PICT',
+      importerName: 'Allied Electronics Ltd',
+      importerNtn: '1234567-8',
+      exporterName: 'Samsung Korea',
+      countryOfOrigin: 'South Korea',
+      hsCode: '8471.30.0000',
+      goodsDescription: 'Laptop Computers',
+      packages: 500,
+      packageType: 'Cartons',
+      grossWeight: 2500,
+      netWeight: 2200,
+      containerNumbers: ['MSKU1234567', 'MSKU7654321'],
+      invoiceNumber: 'INV-2024-00123',
+      invoiceValue: 125000,
+      currency: 'USD',
+      exchangeRate: 278.50,
+      assessedValue: 35187500,
+      customsDuty: 5278125,
+      salesTax: 7333050,
+      additionalDuty: 2111250,
+      totalDutyTax: 14722425,
+      gdNumber: 'GD-2024-001234',
+      gdDate: '2024-01-16',
+      paymentDate: '2024-01-18',
+      releaseDate: '2024-01-19',
+      status: 'released',
+      createdAt: '2024-01-15T10:00:00Z',
+    },
+    {
+      id: '2',
+      indexNumber: 'IMP-2024-00002',
+      igmNumber: 'IGM-KHI-2024-12346',
+      igmDate: '2024-01-18',
+      blNumber: 'HLCU987654321',
+      blDate: '2024-01-12',
+      blType: 'Telex',
+      vesselName: 'EVER GIVEN',
+      voyageNumber: 'VY-2024-002',
+      portOfLoading: 'Dubai, UAE',
+      portOfDischarge: 'Port Qasim',
+      terminal: 'QICT',
+      importerName: 'Textile Mills Pakistan',
+      importerNtn: '9876543-2',
+      exporterName: 'Dubai Trading LLC',
+      countryOfOrigin: 'UAE',
+      hsCode: '5201.00.0000',
+      goodsDescription: 'Raw Cotton',
+      packages: 100,
+      packageType: 'Bales',
+      grossWeight: 22000,
+      netWeight: 20000,
+      containerNumbers: ['HLCU1111111', 'HLCU2222222', 'HLCU3333333'],
+      invoiceNumber: 'INV-2024-00456',
+      invoiceValue: 75000,
+      currency: 'USD',
+      exchangeRate: 278.50,
+      assessedValue: 21112500,
+      customsDuty: 1055625,
+      salesTax: 3990187,
+      additionalDuty: 0,
+      totalDutyTax: 5045812,
+      gdNumber: 'GD-2024-001235',
+      gdDate: '2024-01-19',
+      status: 'assessed',
+      createdAt: '2024-01-18T09:00:00Z',
+    },
+    {
+      id: '3',
+      indexNumber: 'IMP-2024-00003',
+      igmNumber: '',
+      igmDate: '',
+      blNumber: 'OOCL456789123',
+      blDate: '2024-01-20',
+      blType: 'Express',
+      vesselName: 'CMA CGM MARCO POLO',
+      voyageNumber: 'VY-2024-003',
+      portOfLoading: 'Singapore',
+      portOfDischarge: 'Karachi',
+      terminal: 'KICT',
+      importerName: 'Pharma Solutions Pvt Ltd',
+      importerNtn: '5555555-5',
+      exporterName: 'MedChem Singapore',
+      countryOfOrigin: 'Singapore',
+      hsCode: '3004.90.0000',
+      goodsDescription: 'Pharmaceutical Products',
+      packages: 200,
+      packageType: 'Cartons',
+      grossWeight: 800,
+      netWeight: 750,
+      containerNumbers: ['OOCL9999999'],
+      invoiceNumber: 'INV-2024-00789',
+      invoiceValue: 180000,
+      currency: 'USD',
+      exchangeRate: 278.50,
+      assessedValue: 50625000,
+      customsDuty: 0,
+      salesTax: 9112500,
+      additionalDuty: 0,
+      totalDutyTax: 9112500,
+      status: 'pending',
+      createdAt: '2024-01-20T14:00:00Z',
+    },
+  ];
+};
 
 export function useImports() {
-  const queryClient = useQueryClient();
+  const [imports, setImports] = useState<ImportShipment[]>(generateMockImports);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ImportStatus | 'all'>('all');
   const [terminalFilter, setTerminalFilter] = useState<string>('all');
-
-  const { data: imports = [], isLoading } = useQuery({
-    queryKey: ['imports'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('imports')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Fetch Imports error:', error);
-        if (error.code === '42P01') {
-          toast.error('DB Setup required: "imports" table missing.');
-        } else {
-          toast.error('Failed to load imports');
-        }
-        return [];
-      }
-      return data.map(mapToImport);
-    },
-  });
 
   const filteredImports = useMemo(() => {
     return imports.filter(imp => {
@@ -173,65 +230,126 @@ export function useImports() {
     totalDuty: imports.reduce((sum, i) => sum + i.totalDutyTax, 0),
   }), [imports]);
 
-  const addImportMutation = useMutation({
-    mutationFn: async (data: ImportFormData) => {
+  const addImport = useCallback((data: ImportFormData) => {
+    const exchangeRate = 278.50;
+    const assessedValue = data.invoiceValue * exchangeRate * 1.01;
+    const customsDuty = assessedValue * 0.15;
+    const salesTax = (assessedValue + customsDuty) * 0.18;
+    const totalDuty = customsDuty + salesTax + (assessedValue * 0.055);
+
+    const newImport: ImportShipment = {
+      id: `imp-${Date.now()}`,
+      indexNumber: `IMP-${new Date().getFullYear()}-${String(imports.length + 1).padStart(5, '0')}`,
+      igmNumber: '',
+      igmDate: '',
+      blNumber: data.blNumber,
+      blDate: data.blDate,
+      blType: data.blType,
+      vesselName: data.vesselName,
+      voyageNumber: data.voyageNumber,
+      portOfLoading: data.portOfLoading,
+      portOfDischarge: data.portOfDischarge,
+      terminal: data.terminal,
+      importerName: data.importerName,
+      importerNtn: data.importerNtn,
+      exporterName: data.exporterName,
+      countryOfOrigin: data.countryOfOrigin,
+      hsCode: data.hsCode,
+      goodsDescription: data.goodsDescription,
+      packages: data.packages,
+      packageType: data.packageType,
+      grossWeight: data.grossWeight,
+      netWeight: data.netWeight,
+      containerNumbers: data.containerNumbers.split(',').map(c => c.trim()),
+      invoiceNumber: data.invoiceNumber,
+      invoiceValue: data.invoiceValue,
+      currency: data.currency,
+      exchangeRate,
+      assessedValue,
+      customsDuty,
+      salesTax,
+      additionalDuty: assessedValue * 0.055,
+      totalDutyTax: totalDuty,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+
+    setImports(prev => [newImport, ...prev]);
+    toast.success('Import shipment created');
+  }, [imports.length]);
+
+  const updateImport = useCallback((id: string, data: ImportFormData) => {
+    setImports(prev => prev.map(imp => {
+      if (imp.id !== id) return imp;
+
       const exchangeRate = 278.50;
       const assessedValue = data.invoiceValue * exchangeRate * 1.01;
       const customsDuty = assessedValue * 0.15;
       const salesTax = (assessedValue + customsDuty) * 0.18;
       const totalDuty = customsDuty + salesTax + (assessedValue * 0.055);
 
-      const { data: newRow, error } = await supabase
-        .from('imports')
-        .insert({
-          index_number: `IMP-${Date.now()}`,
-          bl_number: data.blNumber,
-          bl_date: data.blDate, // Ensure date string format YYYY-MM-DD
-          vessel_name: data.vesselName,
-          voyage_number: data.voyageNumber,
-          port_of_loading: data.portOfLoading,
-          port_of_discharge: data.portOfDischarge,
-          importer_name: data.importerName,
-          importer_ntn: data.importerNtn,
-          exporter_name: data.exporterName,
-          country_of_origin: data.countryOfOrigin,
-          hs_code: data.hsCode,
-          goods_description: data.goodsDescription,
-          packages: data.packages,
-          package_type: data.packageType,
-          gross_weight: data.grossWeight,
-          net_weight: data.netWeight,
-          container_numbers: data.containerNumbers.split(',').map(c => c.trim()), // TS expects string[] here if typed correctly
-          invoice_number: data.invoiceNumber,
-          invoice_value: data.invoiceValue,
-          currency: data.currency,
-          terminal: data.terminal,
+      return {
+        ...imp,
+        blNumber: data.blNumber,
+        blDate: data.blDate,
+        blType: data.blType,
+        vesselName: data.vesselName,
+        voyageNumber: data.voyageNumber,
+        portOfLoading: data.portOfLoading,
+        portOfDischarge: data.portOfDischarge,
+        terminal: data.terminal,
+        importerName: data.importerName,
+        importerNtn: data.importerNtn,
+        exporterName: data.exporterName,
+        countryOfOrigin: data.countryOfOrigin,
+        hsCode: data.hsCode,
+        goodsDescription: data.goodsDescription,
+        packages: data.packages,
+        packageType: data.packageType,
+        grossWeight: data.grossWeight,
+        netWeight: data.netWeight,
+        containerNumbers: data.containerNumbers.split(',').map(c => c.trim()),
+        invoiceNumber: data.invoiceNumber,
+        invoiceValue: data.invoiceValue,
+        currency: data.currency,
+        exchangeRate,
+        assessedValue,
+        customsDuty,
+        salesTax,
+        additionalDuty: assessedValue * 0.055,
+        totalDutyTax: totalDuty,
+      };
+    }));
+    toast.success('Import shipment updated');
+  }, []);
 
-          exchange_rate: exchangeRate,
-          assessed_value: assessedValue,
-          customs_duty: customsDuty,
-          sales_tax: salesTax,
-          total_duty_tax: totalDuty,
-          status: 'pending'
-        })
-        .select()
-        .single();
+  const updateStatus = useCallback((id: string, newStatus: ImportStatus) => {
+    setImports(prev => prev.map(imp => {
+      if (imp.id !== id) return imp;
 
-      if (error) throw error;
-      return mapToImport(newRow);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['imports'] });
-      toast.success('Import created');
-    },
-    onError: (err: any) => {
-      toast.error(`Error creating Import: ${err.message}`);
-    }
-  });
+      const updates: Partial<ImportShipment> = { status: newStatus };
 
-  const updateImport = useCallback(() => toast.info('Update not implemented in demo'), []);
-  const updateStatus = useCallback(() => toast.info('Status update not implemented'), []);
-  const deleteImport = useCallback(() => toast.info('Delete not implemented'), []);
+      if (newStatus === 'igm_filed') {
+        updates.igmNumber = `IGM-KHI-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
+        updates.igmDate = new Date().toISOString().split('T')[0];
+      }
+      if (newStatus === 'gd_filed') {
+        updates.gdNumber = `GD-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+        updates.gdDate = new Date().toISOString().split('T')[0];
+      }
+      if (newStatus === 'duty_paid') updates.paymentDate = new Date().toISOString().split('T')[0];
+      if (newStatus === 'released') updates.releaseDate = new Date().toISOString().split('T')[0];
+      if (newStatus === 'delivered') updates.deliveryDate = new Date().toISOString().split('T')[0];
+
+      return { ...imp, ...updates };
+    }));
+    toast.success(`Status updated to ${newStatus.replace('_', ' ')}`);
+  }, []);
+
+  const deleteImport = useCallback((id: string) => {
+    setImports(prev => prev.filter(imp => imp.id !== id));
+    toast.success('Import shipment deleted');
+  }, []);
 
   return {
     imports: filteredImports,
@@ -243,7 +361,7 @@ export function useImports() {
     setStatusFilter,
     terminalFilter,
     setTerminalFilter,
-    addImport: addImportMutation.mutate, // Expose mutate as addImport
+    addImport,
     updateImport,
     updateStatus,
     deleteImport,
