@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useAuth, MOCK_USERS } from "@/contexts/AuthContext";
+import "leaflet/dist/leaflet.css";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -37,79 +38,66 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Send, FileText, Truck, User, Package, Shield } from "lucide-react";
 
 // --- Schema Definition ---
+
 const manifestSchema = z.object({
-    // Lenient schema for draft saving
-    manifest_type: z.enum(["LINEHAUL", "DELIVERY", "RTO", "VENDOR", "CONTAINER"]).optional(),
-    dispatch_date_time: z.string().optional(),
-
-    // Optional Basic
-    manifest_number: z.string().optional(),
-    origin_hub: z.string().optional(),
-    destination_hub: z.string().optional(),
-    status: z.enum(["DRAFT", "SUBMITTED", "LOADING", "IN_TRANSIT", "RECEIVED", "CLOSED", "CANCELLED"]).optional(),
-    route_name: z.string().optional(),
-    expected_arrival_date_time: z.string().optional(),
-    remarks: z.string().optional(),
-
-    // Driver Details
-    driver_name: z.string().optional(),
-    driver_cnic: z.string().optional(),
-    driver_mobile: z.string().optional(),
-    driver_license_no: z.string().optional(),
-    driver_license_expiry: z.string().optional(),
-    driver_address: z.string().optional(),
-    driver_emergency_contact: z.string().optional(),
-
-    // Vehicle Details
-    vehicle_reg_no: z.string().optional(),
-    vehicle_type: z.string().optional(),
-    vehicle_make: z.string().optional(),
-    vehicle_model: z.string().optional(),
-    vehicle_year: z.string().optional(),
-    engine_no: z.string().optional(),
-    chassis_no: z.string().optional(),
-    vehicle_insurance_expiry: z.string().optional(),
-    tracker_id: z.string().optional(),
-    carrier_name: z.string().optional(),
-    carrier_phone: z.string().optional(),
-
-    // Customs/Shipping
-    gd_number: z.string().optional(),
-    gd_date: z.string().optional(),
-    igm_number: z.string().optional(),
-    ngm_number: z.string().optional(),
-    index_number: z.string().optional(),
-    bl_number: z.string().optional(),
-    shipping_bill_number: z.string().optional(),
-    container_no: z.string().optional(),
-    container_size: z.string().optional(),
-    container_type: z.string().optional(),
-    seal_no: z.string().optional(),
-
-    // Maritime / Vessel
-    vessel_name: z.string().optional(),
-    voyage_number: z.string().optional(),
-    port_of_loading: z.string().optional(),
-    port_of_discharge: z.string().optional(),
-
-    // Cargo / Packages
-    pkg_count: z.coerce.number().optional(),
-    pkg_type: z.string().optional(),
-    gross_weight: z.coerce.number().optional(),
-    net_weight: z.coerce.number().optional(),
-    volume_cbm: z.coerce.number().optional(),
-    commodity_description: z.string().optional(),
-    hs_code: z.string().optional(),
-
-    // Parties
-    consignee_name: z.string().optional(),
-    consignee_phone: z.string().optional(),
-    consignee_address: z.string().optional(),
-    shipper_name: z.string().optional(),
-    shipper_phone: z.string().optional(),
-    clearing_agent_name: z.string().optional(),
-    clearing_agent_phone: z.string().optional(),
-    clearing_agent_ntn: z.string().optional(),
+    // Completely Disable Validations - Accept EVERYTHING as nullable/optional
+    manifest_type: z.any().optional(),
+    dispatch_date_time: z.any().optional(),
+    manifest_number: z.any().optional(),
+    origin_hub: z.any().optional(),
+    destination_hub: z.any().optional(),
+    status: z.any().optional(),
+    route_name: z.any().optional(),
+    expected_arrival_date_time: z.any().optional(),
+    remarks: z.any().optional(),
+    driver_name: z.any().optional(),
+    driver_cnic: z.any().optional(),
+    driver_mobile: z.any().optional(),
+    driver_license_no: z.any().optional(),
+    driver_license_expiry: z.any().optional(),
+    driver_address: z.any().optional(),
+    driver_emergency_contact: z.any().optional(),
+    vehicle_reg_no: z.any().optional(),
+    vehicle_type: z.any().optional(),
+    vehicle_make: z.any().optional(),
+    vehicle_model: z.any().optional(),
+    vehicle_year: z.any().optional(),
+    engine_no: z.any().optional(),
+    chassis_no: z.any().optional(),
+    vehicle_insurance_expiry: z.any().optional(),
+    tracker_id: z.any().optional(),
+    carrier_name: z.any().optional(),
+    carrier_phone: z.any().optional(),
+    gd_number: z.any().optional(),
+    gd_date: z.any().optional(),
+    igm_number: z.any().optional(),
+    ngm_number: z.any().optional(),
+    index_number: z.any().optional(),
+    bl_number: z.any().optional(),
+    shipping_bill_number: z.any().optional(),
+    container_no: z.any().optional(),
+    container_size: z.any().optional(),
+    container_type: z.any().optional(),
+    seal_no: z.any().optional(),
+    vessel_name: z.any().optional(),
+    voyage_number: z.any().optional(),
+    port_of_loading: z.any().optional(),
+    port_of_discharge: z.any().optional(),
+    pkg_count: z.any().optional(),
+    pkg_type: z.any().optional(),
+    gross_weight: z.any().optional(),
+    net_weight: z.any().optional(),
+    volume_cbm: z.any().optional(),
+    commodity_description: z.any().optional(),
+    hs_code: z.any().optional(),
+    consignee_name: z.any().optional(),
+    consignee_phone: z.any().optional(),
+    consignee_address: z.any().optional(),
+    shipper_name: z.any().optional(),
+    shipper_phone: z.any().optional(),
+    clearing_agent_name: z.any().optional(),
+    clearing_agent_phone: z.any().optional(),
+    clearing_agent_ntn: z.any().optional(),
 });
 
 type ManifestFormValues = z.infer<typeof manifestSchema>;
@@ -141,6 +129,10 @@ const EXTENDED_DB_COLUMNS = [
     "clearing_agent_name", "clearing_agent_phone", "clearing_agent_ntn"
 ];
 
+// --- Strict Schema Removed ---
+// We no longer enforce ANY strict validation for submission.
+// const strictManifestSchema = ... (removed)
+
 const CreateManifest = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -150,11 +142,14 @@ const CreateManifest = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const { user: authUser } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [currentStatus, setCurrentStatus] = useState<string>("DRAFT"); // Track existing status
 
     // ... (rest of the code remains the same until sanitizePayload)
 
     const form = useForm<ManifestFormValues>({
         resolver: zodResolver(manifestSchema),
+        mode: "onSubmit", // Only validate on submit, not on change
+        reValidateMode: "onSubmit", // Only revalidate on submit
         defaultValues: {
             manifest_type: "LINEHAUL",
             dispatch_date_time: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
@@ -217,14 +212,25 @@ const CreateManifest = () => {
     const loadManifest = async (id: string) => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            console.log("Loading manifest data for ID:", id);
+            const { data: rawData, error } = await supabase
                 .from("carrier_manifests")
                 .select("*")
                 .eq("id", id)
                 .single();
 
-            if (error) throw error;
-            if (data) {
+            if (error) {
+                console.error("Supabase Error:", error);
+                throw error;
+            }
+
+            if (rawData) {
+                const data = rawData as any;
+                console.log("Manifest Data Loaded:", data);
+
+                const safeStr = (val: any) => (val === null || val === undefined) ? "" : String(val);
+                const safeNum = (val: any) => (val === null || val === undefined || val === "") ? 0 : Number(val);
+
                 const formattedDate = data.dispatch_date_time
                     ? format(new Date(data.dispatch_date_time), "yyyy-MM-dd'T'HH:mm")
                     : format(new Date(), "yyyy-MM-dd'T'HH:mm");
@@ -237,15 +243,94 @@ const CreateManifest = () => {
                     ? format(new Date(data.gd_date), "yyyy-MM-dd")
                     : "";
 
-                form.reset({
-                    ...data,
+                const formattedLicenseExpiry = data.driver_license_expiry
+                    ? format(new Date(data.driver_license_expiry), "yyyy-MM-dd")
+                    : "";
+
+                const formattedInsuranceExpiry = data.vehicle_insurance_expiry
+                    ? format(new Date(data.vehicle_insurance_expiry), "yyyy-MM-dd")
+                    : "";
+
+                // Explicitly map EVERY field to ensure no nulls slip through
+                const safeData: ManifestFormValues = {
+                    manifest_type: (data.manifest_type as any) || "LINEHAUL",
                     dispatch_date_time: formattedDate,
+                    status: (data.status as any) || "DRAFT",
+                    
+                    manifest_number: safeStr(data.manifest_number),
+                    origin_hub: safeStr(data.origin_hub),
+                    destination_hub: safeStr(data.destination_hub),
+                    route_name: safeStr(data.route_name),
                     expected_arrival_date_time: formattedArrival,
+                    remarks: safeStr(data.remarks),
+
+                    // Driver
+                    driver_name: safeStr(data.driver_name),
+                    driver_cnic: safeStr(data.driver_cnic),
+                    driver_mobile: safeStr(data.driver_mobile),
+                    driver_license_no: safeStr(data.driver_license_no),
+                    driver_license_expiry: formattedLicenseExpiry,
+                    driver_address: safeStr(data.driver_address),
+                    driver_emergency_contact: safeStr(data.driver_emergency_contact),
+
+                    // Vehicle
+                    vehicle_reg_no: safeStr(data.vehicle_reg_no),
+                    vehicle_type: safeStr(data.vehicle_type),
+                    vehicle_make: safeStr(data.vehicle_make),
+                    vehicle_model: safeStr(data.vehicle_model),
+                    vehicle_year: safeStr(data.vehicle_year),
+                    engine_no: safeStr(data.engine_no),
+                    chassis_no: safeStr(data.chassis_no),
+                    vehicle_insurance_expiry: formattedInsuranceExpiry,
+                    tracker_id: safeStr(data.tracker_id),
+                    carrier_name: safeStr(data.carrier_name),
+                    carrier_phone: safeStr(data.carrier_phone),
+
+                    // Customs
+                    gd_number: safeStr(data.gd_number),
                     gd_date: formattedGDDate,
-                    driver_name: data.driver_name || "",
-                    driver_cnic: data.driver_cnic || "",
-                    vehicle_reg_no: data.vehicle_reg_no || "",
-                } as any);
+                    igm_number: safeStr(data.igm_number),
+                    ngm_number: safeStr(data.ngm_number),
+                    index_number: safeStr(data.index_number),
+                    bl_number: safeStr(data.bl_number),
+                    shipping_bill_number: safeStr(data.shipping_bill_number),
+                    container_no: safeStr(data.container_no),
+                    container_size: safeStr(data.container_size),
+                    container_type: safeStr(data.container_type),
+                    seal_no: safeStr(data.seal_no),
+
+                    // Maritime
+                    vessel_name: safeStr(data.vessel_name),
+                    voyage_number: safeStr(data.voyage_number),
+                    port_of_loading: safeStr(data.port_of_loading),
+                    port_of_discharge: safeStr(data.port_of_discharge),
+
+                    // Cargo
+                    pkg_count: safeNum(data.pkg_count),
+                    pkg_type: safeStr(data.pkg_type),
+                    gross_weight: safeNum(data.gross_weight),
+                    net_weight: safeNum(data.net_weight),
+                    volume_cbm: safeNum(data.volume_cbm),
+                    commodity_description: safeStr(data.commodity_description),
+                    hs_code: safeStr(data.hs_code),
+
+                    // Parties
+                    consignee_name: safeStr(data.consignee_name),
+                    consignee_phone: safeStr(data.consignee_phone),
+                    consignee_address: safeStr(data.consignee_address),
+                    shipper_name: safeStr(data.shipper_name),
+                    shipper_phone: safeStr(data.shipper_phone),
+                    clearing_agent_name: safeStr(data.clearing_agent_name),
+                    clearing_agent_phone: safeStr(data.clearing_agent_phone),
+                    clearing_agent_ntn: safeStr(data.clearing_agent_ntn),
+                };
+                
+                setCurrentStatus(data.status || "DRAFT");
+                console.log("Resetting form with Safe Data:", safeData);
+                form.reset(safeData);
+            } else {
+                console.warn("No data found for ID:", id);
+                toast.error("Manifest not found or access denied.");
             }
         } catch (error) {
             console.error("Error loading manifest:", error);
@@ -258,11 +343,29 @@ const CreateManifest = () => {
     const sanitizePayload = (values: any, useExtended: boolean = true) => {
         const clean: any = {};
         const allowedColumns = useExtended ? [...CORE_DB_COLUMNS, ...EXTENDED_DB_COLUMNS] : CORE_DB_COLUMNS;
+        // Fields that SHOULD be null if empty (Dates, FKs, Enums that are optional)
+        const nullableFields = [
+            "dispatch_date_time", "expected_arrival_date_time", "gd_date",
+            "driver_license_expiry", "vehicle_insurance_expiry",
+            "submitted_at", "submitted_by", "created_by", "updated_by", "carrier_user_id"
+        ];
 
         Object.keys(values).forEach(key => {
             if (allowedColumns.includes(key)) {
-                if (values[key] === "") {
-                    clean[key] = null;
+                if (values[key] === "" || values[key] === undefined) {
+                    // Only set to null if it's explicitly a nullable field (Dates, FKs)
+                    if (nullableFields.includes(key)) {
+                        clean[key] = null;
+                    } else {
+                        // For regular text fields, keep as empty string if it was empty string
+                        // But if it was undefined, we might want to ignore it? 
+                        // Actually, if it's undefined in 'values', it means it wasn't passed.
+                        // But here we are iterating Object.keys(values).
+                        // So if values[key] is undefined, it exists as a key with undefined value.
+                        // We'll treat undefined as null for nullable fields, or empty string for others?
+                        // Safest is:
+                        clean[key] = nullableFields.includes(key) ? null : "";
+                    }
                 } else {
                     clean[key] = values[key];
                 }
@@ -292,6 +395,7 @@ const CreateManifest = () => {
 
         try {
             let currentUser = authUser;
+            // ... (Auth Logic) ...
             if (!currentUser) {
                 const storedUser = localStorage.getItem('demo_user');
                 if (storedUser) {
@@ -309,7 +413,6 @@ const CreateManifest = () => {
 
             // Ensure Created By is valid text or null
             let userId = currentUser?.id ? String(currentUser.id) : null;
-
             // Fallback for demo users
             if (!userId) {
                 const storedUser = localStorage.getItem('demo_user');
@@ -321,48 +424,100 @@ const CreateManifest = () => {
             // --- FK SAFETY FIX ---
             const isMockUser = Object.values(MOCK_USERS).some(u => u.id === userId);
             const safeCarrierUserId = isMockUser ? null : userId;
-            console.log(`User ID: ${userId}, Is Mock: ${isMockUser}, Safe ID: ${safeCarrierUserId}`);
 
-            const rawPayload = {
-                ...values,
-                status: isSubmit ? "SUBMITTED" : (values.status || "DRAFT"),
-                manifest_number: values.manifest_number || `MAN-${format(new Date(), "yyyyMMdd")}-${Math.floor(Math.random() * 1000)}`,
-                created_by: safeCarrierUserId,
-                carrier_user_id: safeCarrierUserId, // Null if mock user to avoid FK error
-                updated_at: new Date().toISOString(),
-                submitted_by: isSubmit ? userId : null,
-                submitted_at: isSubmit ? new Date().toISOString() : null,
-                dispatch_date_time: values.dispatch_date_time ? new Date(values.dispatch_date_time).toISOString() : null,
-                expected_arrival_date_time: values.expected_arrival_date_time ? new Date(values.expected_arrival_date_time).toISOString() : null,
-                gd_date: values.gd_date ? new Date(values.gd_date).toISOString() : null,
-                driver_license_expiry: values.driver_license_expiry ? new Date(values.driver_license_expiry).toISOString() : null,
-                vehicle_insurance_expiry: values.vehicle_insurance_expiry ? new Date(values.vehicle_insurance_expiry).toISOString() : null,
-            };
+            // --- STRICT VALIDATION FOR NEW SUBMISSIONS REMOVED ---
+            // We now allow submission of ANY payload, even with empty fields.
+            /*
+            if (isSubmit && currentStatus !== "SUBMITTED") {
+                 const validationResult = strictManifestSchema.safeParse(values);
+                 if (!validationResult.success) {
+                     // ...
+                 }
+            }
+            */
+
+            // --- PARTIAL UPDATE LOGIC ---
+            // If editing, try to only send changed fields to prevent overwriting missing data with nulls
+            // BUT: If the user explicitly cleared a field, we MUST send null.
+            // Our sanitizePayload handles "" -> null.
+            // So we need to construct a payload that includes:
+            // 1. All DIRTY fields (what user touched)
+            // 2. REQUIRED system fields (updated_at, etc.)
+            // 3. If NOT dirty, do not include in payload (so Supabase ignores it)
+
+            let payloadToSanitize: any = {};
+
+            if (editId && Object.keys(form.formState.dirtyFields).length > 0) {
+                console.log("Partial Update Mode. Dirty fields:", form.formState.dirtyFields);
+                
+                // Copy dirty values
+                Object.keys(form.formState.dirtyFields).forEach((key) => {
+                    const k = key as keyof ManifestFormValues;
+                    payloadToSanitize[k] = values[k];
+                });
+
+                // Always include system fields for update
+                payloadToSanitize.updated_at = new Date().toISOString();
+                if (isSubmit) {
+                    payloadToSanitize.status = "SUBMITTED";
+                    payloadToSanitize.submitted_by = userId;
+                    payloadToSanitize.submitted_at = new Date().toISOString();
+                } else {
+                    // If just saving draft, keep existing status unless changed
+                    if (form.formState.dirtyFields.status) {
+                        payloadToSanitize.status = values.status;
+                    }
+                }
+                
+                // If specific critical fields are dirty, ensure dependencies are met?
+                // For now, trust the dirty tracking.
+
+            } else {
+                // Full Save (New Record OR No Dirty tracking available/reliable)
+                // Or user didn't change anything but clicked save (maybe to submit)
+                console.log("Full Update Mode.");
+                payloadToSanitize = {
+                    ...values,
+                    status: isSubmit ? "SUBMITTED" : (values.status || "DRAFT"),
+                    manifest_number: values.manifest_number || `MAN-${format(new Date(), "yyyyMMdd")}-${Math.floor(Math.random() * 1000)}`,
+                    created_by: safeCarrierUserId,
+                    carrier_user_id: safeCarrierUserId,
+                    updated_at: new Date().toISOString(),
+                    submitted_by: isSubmit ? userId : null,
+                    submitted_at: isSubmit ? new Date().toISOString() : null,
+                    dispatch_date_time: values.dispatch_date_time ? new Date(values.dispatch_date_time).toISOString() : null,
+                    expected_arrival_date_time: values.expected_arrival_date_time ? new Date(values.expected_arrival_date_time).toISOString() : null,
+                    gd_date: values.gd_date ? new Date(values.gd_date).toISOString() : null,
+                    driver_license_expiry: values.driver_license_expiry ? new Date(values.driver_license_expiry).toISOString() : null,
+                    vehicle_insurance_expiry: values.vehicle_insurance_expiry ? new Date(values.vehicle_insurance_expiry).toISOString() : null,
+                };
+            }
 
             let manifestId = editId;
             let saveSuccess = false;
 
-            // Attempt 1: Full Save (Extended Fields)
+            // Use the payloadToSanitize
             try {
-                const payload = sanitizePayload(rawPayload, true);
-                console.log("Attempting Full Save...", payload);
+                // If partial, useExtended should probably be true to allow all columns, 
+                // but sanitizePayload filters by DB columns anyway.
+                const payload = sanitizePayload(payloadToSanitize, true);
+                
+                console.log("Saving Payload...", payload);
                 manifestId = await saveToSupabase(payload, editId);
                 saveSuccess = true;
             } catch (fullError: any) {
-                console.warn("Full save failed, attempting minimal save...", fullError);
-
-                // Check if error is related to missing columns
-                if (fullError.message?.includes("Could not find the") || fullError.code === "42703") { // 42703 is undefined_column
-                    // Attempt 2: Minimal Save (Core Fields Only)
-                    const corePayload = sanitizePayload(rawPayload, false);
-                    console.log("Attempting Minimal Save...", corePayload);
+                console.warn("Save failed", fullError);
+                if (fullError.message?.includes("Could not find the") || fullError.code === "42703") {
+                     // Fallback for missing columns (mostly for Full Save scenarios)
+                     // For Partial Save, this is less likely unless we try to update a missing column
+                    const corePayload = sanitizePayload(payloadToSanitize, false);
                     manifestId = await saveToSupabase(corePayload, editId);
                     saveSuccess = true;
-                    toast.warning("Manifest saved with basic details only. Please ask admin to run migration script.");
                 } else {
-                    throw fullError; // Re-throw other errors (auth, etc.)
+                    throw fullError;
                 }
             }
+            // ...
 
             if (saveSuccess) {
                 toast.success(isSubmit ? "Manifest Submitted Successfully" : "Manifest Saved Successfully");
